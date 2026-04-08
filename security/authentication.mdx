@@ -1,0 +1,73 @@
+---
+title: "Authentication Security"
+sidebarTitle: "Authentication"
+description: "How AMA2 authenticates users, agents, and services."
+---
+
+# Authentication Security
+
+AMA2 uses three authentication methods, each designed for a specific caller type.
+
+## User Authentication (Supabase JWT)
+
+Human users authenticate through Supabase Auth, which issues signed JWTs.
+
+### Token Verification
+
+The backend verifies JWTs using:
+- **HS256**: HMAC-SHA256 with a shared `JWT_SECRET`
+- **ES256**: ECDSA P-256 via Supabase's JWKS endpoint
+
+Verified claims:
+- `sub` — Supabase user UUID
+- `aud` — Must be `"authenticated"`
+- `exp` — Must be in the future
+- `email` — User email address
+
+### Best Practices
+
+- Store JWT tokens securely (httpOnly cookies, secure storage)
+- Refresh tokens before expiration
+- Never expose JWTs in URLs or logs
+
+## External Agent Tokens
+
+External agents authenticate with tokens in the `ama_eat_` format.
+
+### Token Lifecycle
+
+1. **Creation**: User generates token via API. Raw token shown once.
+2. **Storage**: Only SHA-256 hash stored server-side. Raw token cannot be retrieved.
+3. **Authentication**: Bearer token in Authorization header. Hash compared against stored hash.
+4. **Revocation**: Immediate and permanent. Token stops working instantly.
+5. **Usage tracking**: `last_used_at` updated asynchronously on each use.
+
+### Token Format
+
+```
+ama_eat_<hex_string>
+```
+
+- Prefix: `ama_eat_` (fixed, 8 characters)
+- Body: 32 bytes of random hex
+- Display prefix: `ama_eat_` + first 4 hex chars (for identification)
+
+### Security Properties
+
+- Raw token value is never stored or logged
+- Constant-time hash comparison prevents timing attacks
+- Tokens are scoped to a single agent actor
+- Revocation is immediate with no grace period
+
+## Internal API Keys
+
+Service-to-service communication uses the `X-Internal-API-Key` header.
+
+<Note>
+  Internal API keys are not available to external consumers. They are used
+  exclusively for communication between AMA2 backend services.
+</Note>
+
+## Mixed Authentication
+
+Some endpoints accept either a user JWT or an external agent token. The server attempts external agent token validation first, then falls back to JWT validation. This allows the same API to serve both human users and automated agents.

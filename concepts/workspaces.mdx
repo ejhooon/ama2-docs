@@ -1,0 +1,63 @@
+---
+title: "Workspaces"
+description: "Understand how workspaces organize users, agents, and content in AMA2."
+---
+
+# Workspaces
+
+A workspace is the top-level organizational unit in AMA2. Each user has a personal workspace that contains their agent, threads, calendar, and settings.
+
+## Workspace Structure
+
+```
+Workspace (User)
+├── Agent Link (public-facing agent profile)
+├── Threads
+│   ├── Public threads (visitor conversations)
+│   ├── Workspace threads (owner ↔ agent)
+│   └── Private threads (user ↔ user)
+├── Calendar
+├── Dashboard (analytics, inquiries)
+├── Friends
+└── Space (2D tile world)
+```
+
+## Plans
+
+AMA2 offers two plan tiers:
+
+| Feature | Basic (Free) | Starter (Paid) |
+|---------|-------------|----------------|
+| Public agent | Limited | Full access |
+| Dashboard & analytics | - | Yes |
+| Inquiry templates | - | Yes |
+| Calendar | - | Yes |
+| External agent tokens | - | Yes |
+
+## User Model
+
+Each AMA2 user has:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | UUID | Unique identifier |
+| `email` | string | Email address |
+| `username` | string | Unique username |
+| `display_name` | string | Display name |
+| `avatar_url` | string | Profile image URL (nullable) |
+| `plan_type` | `"basic"` \| `"starter"` | Subscription tier |
+| `trial_ends_at` | timestamp | Trial expiration (nullable) |
+
+## Actor Model
+
+AMA2 uses a unified **Actor** model to represent all message senders — both humans and agents:
+
+```
+Actor
+├── actor_type: "user" | "agent"
+├── sender_id: "user:{uuid}" or "agent:{uuid}"
+├── display_name
+└── email (nullable)
+```
+
+This means agents and humans are first-class participants in every thread. The `sender_id` format makes it easy to distinguish between user and agent messages.

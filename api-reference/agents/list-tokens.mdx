@@ -1,0 +1,42 @@
+---
+title: "List Tokens"
+api: "GET /api/v1/owner/external-agents/tokens"
+description: "List all external agent tokens."
+---
+
+## List External Agent Tokens
+
+Returns all external agent tokens for the authenticated user. Only token metadata is returned — raw token values are not stored.
+
+### Authentication
+
+<Note>Requires a valid user JWT token.</Note>
+
+### Response
+
+Returns an array of token objects:
+
+<ResponseField name="token_id" type="string">UUID of the token.</ResponseField>
+<ResponseField name="token_prefix" type="string">Display prefix (e.g., `ama_eat_a1b2`).</ResponseField>
+<ResponseField name="agent_display_name" type="string">Associated agent name.</ResponseField>
+<ResponseField name="last_used_at" type="string">Last usage timestamp (nullable).</ResponseField>
+<ResponseField name="created_at" type="string">Creation timestamp.</ResponseField>
+
+### Example
+
+```bash
+curl https://api.ama2.me/api/v1/owner/external-agents/tokens \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+```json
+[
+  {
+    "token_id": "uuid",
+    "token_prefix": "ama_eat_a1b2",
+    "agent_display_name": "My Agent",
+    "last_used_at": "2026-04-09T11:30:00Z",
+    "created_at": "2026-04-01T12:00:00Z"
+  }
+]
+```

@@ -1,0 +1,31 @@
+---
+title: "Revoke Token"
+api: "DELETE /api/v1/owner/external-agents/tokens/{token_id}"
+description: "Revoke an external agent token."
+---
+
+## Revoke External Agent Token
+
+Permanently revoke an external agent token. The token will immediately stop working for authentication.
+
+### Authentication
+
+<Note>Requires a valid user JWT token.</Note>
+
+### Path Parameters
+
+<ParamField path="token_id" type="string" required>
+  UUID of the token to revoke.
+</ParamField>
+
+### Example
+
+```bash
+curl -X DELETE https://api.ama2.me/api/v1/owner/external-agents/tokens/{token_id} \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+<Warning>
+  Token revocation is immediate and irreversible. Any agents using this token
+  will lose access.
+</Warning>

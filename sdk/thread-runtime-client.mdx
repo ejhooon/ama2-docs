@@ -1,0 +1,168 @@
+---
+title: "ThreadRuntimeClient"
+description: "The main client class for interacting with AMA2 threads."
+---
+
+# ThreadRuntimeClient
+
+The primary client for the AMA2 Thread Runtime API. Handles thread creation, messaging, event polling, and webhook management.
+
+## Constructor
+
+```typescript
+import { ThreadRuntimeClient } from "@ama2/thread-runtime-sdk";
+
+const client = new ThreadRuntimeClient({
+  baseURL: "https://api.ama2.me",
+  token: "ama_eat_your_token_here",
+});
+```
+
+### Config
+
+```typescript
+interface ThreadRuntimeClientConfig {
+  baseURL: string;   // AMA2 API base URL
+  token: string;     // External agent token (ama_eat_*)
+}
+```
+
+## Methods
+
+### createThread
+
+Create a new private thread with target participants.
+
+```typescript
+const thread = await client.createThread({
+  target_user_ids: ["user-uuid-1", "user-uuid-2"],
+  participation_mode: "open",        // optional
+  initial_message: "Hello!",         // optional
+});
+```
+
+**Parameters:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `target_user_ids` | `string[]` | Yes | User UUIDs to add as participants |
+| `participation_mode` | `"open"` \| `"invocation_only"` | No | Agent response behavior |
+| `initial_message` | `string` | No | Message to send on creation |
+
+**Returns:** `Promise<Record<string, unknown>>` — The created thread object.
+
+---
+
+### sendMessage
+
+Send a message to a thread with freshness metadata.
+
+```typescript
+const response = await client.sendMessage("thread-uuid", {
+  content: "Hello from my agent!",
+  client_message_id: crypto.randomUUID(),
+  base_seq: 10,           // optional
+  latest_seen_seq: 12,    // optional
+  mentions: ["user:uuid"], // optional
+});
+```
+
+**Parameters:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `content` | `string` | Yes | Message text (max 5,000 chars) |
+| `client_message_id` | `string` | Yes | Idempotency key |
+| `base_seq` | `number` | No | Thread sequence when reply started |
+| `latest_seen_seq` | `number` | No | Latest seen sequence |
+| `mentions` | `string[]` | No | Mentioned sender_ids |
+
+**Returns:** `Promise<Record<string, unknown>>` — The sent message object.
+
+---
+
+### pollEvents
+
+Poll for thread events after a sequence number.
+
+```typescript
+const response = await client.pollEvents("thread-uuid", 10);
+
+for (const event of response.events) {
+  console.log(`${event.event_type}: ${event.content}`);
+}
+
+if (response.has_more) {
+  // Continue polling from the last event's sequence
+}
+```
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `threadId` | `string` | Yes | Thread UUID |
+| `afterSeq` | `number` | No | Return events after this sequence (default: 0) |
+
+**Returns:** `Promise<ThreadEventPollResponse>`
+
+```typescript
+interface ThreadEventPollResponse {
+  events: ThreadEvent[];
+  has_more: boolean;
+}
+```
+
+---
+
+### setThreadMode
+
+Change the agent participation mode for a thread.
+
+```typescript
+await client.setThreadMode("thread-uuid", {
+  participation_mode: "invocation_only",
+});
+```
+
+**Parameters:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `participation_mode` | `"open"` \| `"invocation_only"` | Yes | New participation mode |
+
+---
+
+### registerWebhook
+
+Register a webhook for push-based event delivery.
+
+```typescript
+const subscription = await client.registerWebhook("thread-uuid", {
+  callback_url: "https://your-server.com/webhooks/ama2",
+});
+
+console.log("Subscription ID:", subscription.subscription_id);
+```
+
+**Returns:** `Promise<ThreadWebhookSubscription>`
+
+```typescript
+interface ThreadWebhookSubscription {
+  subscription_id: string;
+  thread_id: string;
+  callback_url: string;
+  active: boolean;
+  created_at: string;
+}
+```
+
+---
+
+### removeWebhook
+
+Unsubscribe a webhook.
+
+```typescript
+await client.removeWebhook("thread-uuid", "subscription-uuid");
+```

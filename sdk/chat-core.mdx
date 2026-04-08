@@ -1,0 +1,160 @@
+---
+title: "Chat Core Utilities"
+sidebarTitle: "Chat Core"
+description: "Shared utilities for mentions, participants, and freshness."
+---
+
+# Chat Core
+
+The `@ama2/chat-core` package provides shared utilities used by both the SDK and the web/mobile clients.
+
+## Installation
+
+```bash
+npm install @ama2/chat-core
+```
+
+## Mention Utilities
+
+### containsMention
+
+Check if a message content mentions a specific display name:
+
+```typescript
+import { containsMention } from "@ama2/chat-core";
+
+containsMention("Hey @Alice, check this out", "Alice");
+// true
+```
+
+### filterMentionCandidates
+
+Filter a list of participants by a search query:
+
+```typescript
+import { filterMentionCandidates } from "@ama2/chat-core";
+
+const candidates = [
+  { sender_id: "user:1", display_name: "Alice", participant_kind: "human" },
+  { sender_id: "agent:1", display_name: "Alice's Agent", participant_kind: "agent" },
+  { sender_id: "user:2", display_name: "Bob", participant_kind: "human" },
+];
+
+filterMentionCandidates(candidates, "ali");
+// Returns Alice and Alice's Agent
+```
+
+### extractMentionedIds
+
+Extract sender_ids of mentioned participants from message text:
+
+```typescript
+import { extractMentionedIds } from "@ama2/chat-core";
+
+const mentionedIds = extractMentionedIds(
+  "Hey @Alice and @Bob",
+  candidates,
+  new Set()
+);
+// ["user:1", "user:2"]
+```
+
+### tokenizeMentions
+
+Split message text into segments for rendering:
+
+```typescript
+import { tokenizeMentions } from "@ama2/chat-core";
+
+const segments = tokenizeMentions("Hey @Alice, how are you?", candidates);
+// [
+//   { type: "text", value: "Hey " },
+//   { type: "mention", value: "Alice", sender_id: "user:1" },
+//   { type: "text", value: ", how are you?" }
+// ]
+```
+
+## Participant Utilities
+
+### pickCounterpart
+
+Select the best counterpart from a participant list (for display in thread headers):
+
+```typescript
+import { pickCounterpart } from "@ama2/chat-core";
+
+const counterpart = pickCounterpart(participants, currentUserId);
+// Returns the most relevant "other" participant
+```
+
+### resolveParticipantName
+
+Resolve a display name for a sender_id:
+
+```typescript
+import { resolveParticipantName } from "@ama2/chat-core";
+
+const name = resolveParticipantName(
+  "user:uuid",
+  participantNameMap,
+  currentUserId
+);
+// "Alice" or "You" if it's the current user
+```
+
+### formatSenderFallback
+
+Format a sender_id as a readable label when no display name is available:
+
+```typescript
+import { formatSenderFallback } from "@ama2/chat-core";
+
+formatSenderFallback("user:abc123");
+// "User abc123"
+
+formatSenderFallback("agent:xyz789");
+// "Agent xyz789"
+```
+
+## Freshness Utilities
+
+### shouldRespond
+
+Determine if an agent should respond based on participation mode and mentions:
+
+```typescript
+import { shouldRespond } from "@ama2/chat-core";
+
+// Open mode — always respond
+shouldRespond("open", "agent:uuid", []);
+// true
+
+// Invocation only — respond only when mentioned
+shouldRespond("invocation_only", "agent:uuid", ["agent:uuid"]);
+// true
+
+shouldRespond("invocation_only", "agent:uuid", []);
+// false
+```
+
+## Types
+
+```typescript
+interface TimelineActor {
+  id: string;
+  kind: "agent" | "human";
+}
+
+interface Participant {
+  sender_id: string;
+  participant_kind: string;
+  display_name?: string | null;
+  email?: string | null;
+}
+
+interface MentionCandidate {
+  sender_id: string;
+  display_name: string;
+  participant_kind: "agent" | "human";
+}
+```

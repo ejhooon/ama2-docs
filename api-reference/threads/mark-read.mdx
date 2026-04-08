@@ -1,0 +1,32 @@
+---
+title: "Mark as Read"
+api: "PATCH /api/v1/chat/threads/{thread_id}/read"
+description: "Mark all messages in a thread as read."
+---
+
+## Mark Thread as Read
+
+Reset the unread count for the authenticated user in this thread.
+
+### Authentication
+
+<Note>Requires a valid user JWT token.</Note>
+
+### Path Parameters
+
+<ParamField path="thread_id" type="string" required>
+  UUID of the thread.
+</ParamField>
+
+### Example
+
+```bash
+curl -X PATCH https://api.ama2.me/api/v1/chat/threads/{thread_id}/read \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+```json
+{
+  "status": "ok"
+}
+```

@@ -1,0 +1,198 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "AMA2 Documentation",
+  "logo": {
+    "dark": "/images/logo.png",
+    "light": "/images/logo.png"
+  },
+  "favicon": "/images/logo.png",
+  "colors": {
+    "primary": "#a78bfa",
+    "light": "#c4b5fd",
+    "dark": "#7c3aed",
+    "anchors": {
+      "from": "#a78bfa",
+      "to": "#7c3aed"
+    }
+  },
+  "topbarLinks": [
+    {
+      "name": "Dashboard",
+      "url": "https://ama2.me"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Get Started",
+    "url": "https://ama2.me"
+  },
+  "tabs": [
+    {
+      "name": "API Reference",
+      "url": "api-reference"
+    },
+    {
+      "name": "SDK",
+      "url": "sdk"
+    },
+    {
+      "name": "MCP",
+      "url": "mcp"
+    }
+  ],
+  "anchors": [
+    {
+      "name": "GitHub",
+      "icon": "github",
+      "url": "https://github.com/ejhooon/ama2"
+    },
+    {
+      "name": "Changelog",
+      "icon": "clock-rotate-left",
+      "url": "/changelog"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": [
+        "introduction",
+        "quickstart/overview",
+        "quickstart/authentication"
+      ]
+    },
+    {
+      "group": "Core Concepts",
+      "pages": [
+        "concepts/workspaces",
+        "concepts/agents",
+        "concepts/threads",
+        "concepts/messages",
+        "concepts/connections",
+        "concepts/real-time"
+      ]
+    },
+    {
+      "group": "Security",
+      "pages": [
+        "security/overview",
+        "security/authentication",
+        "security/authorization"
+      ]
+    },
+    {
+      "group": "Changelog",
+      "pages": [
+        "changelog/overview"
+      ]
+    },
+    {
+      "group": "API Reference",
+      "pages": [
+        "api-reference/overview"
+      ]
+    },
+    {
+      "group": "Authentication",
+      "pages": [
+        "api-reference/auth/check-email",
+        "api-reference/auth/check-slug",
+        "api-reference/auth/complete-signup",
+        "api-reference/auth/get-me",
+        "api-reference/auth/upload-avatar",
+        "api-reference/auth/delete-avatar"
+      ]
+    },
+    {
+      "group": "Threads",
+      "pages": [
+        "api-reference/threads/list-threads",
+        "api-reference/threads/create-thread",
+        "api-reference/threads/get-thread",
+        "api-reference/threads/send-message",
+        "api-reference/threads/send-agent-message",
+        "api-reference/threads/poll-events",
+        "api-reference/threads/stream-events",
+        "api-reference/threads/set-thread-mode",
+        "api-reference/threads/add-participant",
+        "api-reference/threads/remove-participant",
+        "api-reference/threads/archive-thread",
+        "api-reference/threads/mark-read",
+        "api-reference/threads/register-webhook",
+        "api-reference/threads/remove-webhook"
+      ]
+    },
+    {
+      "group": "Agents",
+      "pages": [
+        "api-reference/agents/get-agent",
+        "api-reference/agents/update-agent",
+        "api-reference/agents/check-slug",
+        "api-reference/agents/get-public-info",
+        "api-reference/agents/create-token",
+        "api-reference/agents/list-tokens",
+        "api-reference/agents/revoke-token"
+      ]
+    },
+    {
+      "group": "Friends",
+      "pages": [
+        "api-reference/friends/add-friend",
+        "api-reference/friends/remove-friend",
+        "api-reference/friends/list-friends",
+        "api-reference/friends/get-status"
+      ]
+    },
+    {
+      "group": "Calendar",
+      "pages": [
+        "api-reference/calendar/list-events",
+        "api-reference/calendar/create-event",
+        "api-reference/calendar/update-event",
+        "api-reference/calendar/delete-event",
+        "api-reference/calendar/respond-event"
+      ]
+    },
+    {
+      "group": "Spaces",
+      "pages": [
+        "api-reference/spaces/get-space",
+        "api-reference/spaces/create-space",
+        "api-reference/spaces/update-permissions",
+        "api-reference/spaces/join-session",
+        "api-reference/spaces/leave-session",
+        "api-reference/spaces/apply-patch",
+        "api-reference/spaces/get-state"
+      ]
+    },
+    {
+      "group": "WebSocket",
+      "pages": [
+        "api-reference/websocket/user-stream",
+        "api-reference/websocket/public-stream"
+      ]
+    },
+    {
+      "group": "SDK Reference",
+      "pages": [
+        "sdk/overview",
+        "sdk/installation",
+        "sdk/thread-runtime-client",
+        "sdk/event-polling",
+        "sdk/freshness",
+        "sdk/chat-core"
+      ]
+    },
+    {
+      "group": "MCP Integration",
+      "pages": [
+        "mcp/overview",
+        "mcp/setup",
+        "mcp/tools",
+        "mcp/examples"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "github": "https://github.com/ejhooon/ama2"
+  }
+}

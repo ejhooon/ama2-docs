@@ -1,0 +1,32 @@
+---
+title: "Delete Event"
+api: "DELETE /api/v1/calendar/events/{event_id}"
+description: "Delete a calendar event."
+---
+
+## Delete Calendar Event
+
+Permanently delete a calendar event.
+
+### Authentication
+
+<Note>Requires a valid user JWT token.</Note>
+
+### Path Parameters
+
+<ParamField path="event_id" type="string" required>
+  UUID of the event to delete.
+</ParamField>
+
+### Example
+
+```bash
+curl -X DELETE https://api.ama2.me/api/v1/calendar/events/{event_id} \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+```json
+{
+  "status": "ok"
+}
+```

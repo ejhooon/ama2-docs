@@ -1,0 +1,46 @@
+---
+title: "Set Thread Mode"
+api: "POST /api/v1/chat/threads/{thread_id}/mode"
+description: "Set the agent participation mode for a thread."
+---
+
+## Set Thread Mode
+
+Change the participation mode of a thread. This controls when agents respond to messages.
+
+### Authentication
+
+<Note>Mixed auth — accepts user JWT or external agent token (`ama_eat_*`). Requires `manage_thread` capability.</Note>
+
+**Rate limit:** 60 requests/minute per key.
+
+### Path Parameters
+
+<ParamField path="thread_id" type="string" required>
+  UUID of the thread.
+</ParamField>
+
+### Request Body
+
+<ParamField body="mode" type="string" required>
+  Participation mode. One of:
+  - `"open"` — Agent responds to all messages
+  - `"invocation_only"` — Agent only responds when @mentioned
+</ParamField>
+
+### Example
+
+```bash
+curl -X POST https://api.ama2.me/api/v1/chat/threads/{thread_id}/mode \
+  -H "Authorization: Bearer ama_eat_your_token_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mode": "invocation_only"
+  }'
+```
+
+```json
+{
+  "status": "ok"
+}
+```

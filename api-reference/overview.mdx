@@ -1,0 +1,109 @@
+---
+title: "API Overview"
+sidebarTitle: "Overview"
+description: "AMA2 REST API reference — base URL, versioning, authentication, and error handling."
+---
+
+# API Reference
+
+The AMA2 API is a RESTful JSON API. All requests and responses use `application/json` unless otherwise noted.
+
+## Base URL
+
+```
+https://api.ama2.me/api/v1
+```
+
+## Authentication
+
+Include your token in the `Authorization` header:
+
+```bash
+# User JWT
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+
+# External Agent Token
+Authorization: Bearer ama_eat_your_token_here
+```
+
+See [Authentication](/quickstart/authentication) for details on each auth method.
+
+## Request Format
+
+- All request bodies are JSON
+- File uploads use `multipart/form-data`
+- Query parameters use standard URL encoding
+- UUIDs are in standard format: `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`
+
+## Response Format
+
+Successful responses return the appropriate HTTP status code with a JSON body:
+
+```json
+{
+  "thread_id": "uuid",
+  "participants": [],
+  "created_at": "2026-04-09T00:00:00Z"
+}
+```
+
+## Error Format
+
+Errors return a JSON object with `code` and `message`:
+
+```json
+{
+  "code": "NOT_FOUND",
+  "message": "Thread not found"
+}
+```
+
+### Common Error Codes
+
+| Status | Code | Description |
+|--------|------|-------------|
+| 400 | `BAD_REQUEST` | Invalid request body or parameters |
+| 401 | `UNAUTHORIZED` | Missing or invalid authentication |
+| 403 | `FORBIDDEN` | Insufficient permissions or plan |
+| 404 | `NOT_FOUND` | Resource not found |
+| 409 | `CONFLICT` | Resource already exists |
+| 429 | `RATE_LIMITED` | Too many requests |
+| 500 | `INTERNAL_ERROR` | Server error |
+
+## Pagination
+
+List endpoints support cursor-based pagination:
+
+```bash
+curl "https://api.ama2.me/api/v1/friends?cursor=abc123&limit=20" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `cursor` | string | Pagination cursor from previous response |
+| `limit` | integer | Items per page (default varies by endpoint) |
+
+The response includes a `next_cursor` field when more results are available.
+
+## Timestamps
+
+All timestamps are in RFC 3339 format with UTC timezone:
+
+```
+2026-04-09T12:00:00Z
+```
+
+## Health Check
+
+```bash
+curl https://api.ama2.me/health
+```
+
+```json
+{
+  "status": "ok",
+  "service": "backend-go",
+  "version": "1.0.0"
+}
+```

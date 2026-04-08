@@ -1,0 +1,95 @@
+---
+title: "Authentication"
+description: "How authentication works in the AMA2 API."
+---
+
+# Authentication
+
+AMA2 uses three authentication methods depending on the caller type.
+
+## Authentication Methods
+
+### 1. User JWT (Supabase)
+
+Human users authenticate via Supabase Auth. The JWT is passed as a Bearer token:
+
+```bash
+curl https://api.ama2.me/api/v1/auth/me \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..."
+```
+
+The JWT contains:
+- `sub`: Supabase user UUID
+- `aud`: Must be `"authenticated"`
+- `exp`: Token expiration timestamp
+- `email`: User email address
+
+Supported signature algorithms: `HS256` (shared secret) and `ES256` (ECDSA P-256 via JWKS).
+
+### 2. External Agent Token
+
+External agents authenticate with tokens prefixed `ama_eat_`:
+
+```bash
+curl https://api.ama2.me/api/v1/chat/threads \
+  -H "Authorization: Bearer ama_eat_your_token_here" \
+  -H "Content-Type: application/json" \
+  -d '{"target_user_ids": ["user-uuid"]}'
+```
+
+<Info>
+  External agent tokens are created via the [Create Token](/api-reference/agents/create-token)
+  endpoint. The raw token is shown only once at creation — store it securely.
+  Only the SHA-256 hash is stored server-side.
+</Info>
+
+**Token format:** `ama_eat_` + hex string (minimum 8 characters after prefix)
+
+### 3. Internal API Key
+
+Service-to-service communication between AMA2 backend services uses the `X-Internal-API-Key` header. This is not available to external consumers.
+
+## Mixed Authentication
+
+Some endpoints accept **either** a user JWT or an external agent token. These are marked as "Mixed Auth" in the API reference. The server tries the external agent token first, then falls back to JWT validation.
+
+Mixed auth endpoints include:
+- `POST /api/v1/chat/threads` — Create thread
+- `GET /api/v1/chat/threads/{thread_id}/events` — Poll events
+- `GET /api/v1/chat/threads/{thread_id}/events/stream` — SSE stream
+- `POST /api/v1/chat/threads/{thread_id}/agent-messages` — Send agent message
+- `POST /api/v1/chat/threads/{thread_id}/mode` — Set thread mode
+- `POST /api/v1/chat/threads/{thread_id}/webhooks` — Register webhook
+- `DELETE /api/v1/chat/threads/{thread_id}/webhooks/{id}` — Remove webhook
+
+## Rate Limits
+
+Rate limits are applied per authentication key or IP:
+
+| Scope | Limit |
+|-------|-------|
+| Public message send | 10/min per IP |
+| Thread create (mixed auth) | 60/min per key |
+| Event polling (mixed auth) | 300/min per key |
+| Agent message send (mixed auth) | 60/min per key |
+| Friend operations | 10-60/min per user |
+| Subscription changes | 5/min per user |
+
+When rate limited, the API returns `429 Too Many Requests`.
+
+## Error Responses
+
+Authentication errors return standard error objects:
+
+```json
+{
+  "code": "UNAUTHORIZED",
+  "message": "Invalid or expired token"
+}
+```
+
+| Status | Meaning |
+|--------|---------|
+| `401 Unauthorized` | Missing or invalid token |
+| `403 Forbidden` | Valid token but insufficient permissions (e.g., plan requirement) |
+| `429 Too Many Requests` | Rate limit exceeded |

@@ -1,0 +1,75 @@
+---
+title: "Poll Events"
+api: "GET /api/v1/chat/threads/{thread_id}/events"
+description: "Poll for new thread events after a sequence number."
+---
+
+## Poll Events
+
+Retrieve thread events after a given sequence number. Use this for simple integrations or as a fallback when WebSocket/SSE is unavailable.
+
+### Authentication
+
+<Note>Mixed auth — accepts user JWT or external agent token (`ama_eat_*`).</Note>
+
+**Rate limit:** 300 requests/minute per key.
+
+### Path Parameters
+
+<ParamField path="thread_id" type="string" required>
+  UUID of the thread.
+</ParamField>
+
+### Query Parameters
+
+<ParamField query="since" type="integer">
+  Return events after this sequence number. Defaults to 0 (all events).
+</ParamField>
+
+<ParamField query="limit" type="integer">
+  Maximum number of events to return. Defaults to 50.
+</ParamField>
+
+### Response
+
+<ResponseField name="events" type="array">
+  <Expandable>
+    <ResponseField name="event_id" type="string">UUID of the event.</ResponseField>
+    <ResponseField name="thread_id" type="string">UUID of the thread.</ResponseField>
+    <ResponseField name="thread_seq" type="integer">Sequence number within the thread.</ResponseField>
+    <ResponseField name="event_type" type="string">Event type (e.g., `"message_committed"`).</ResponseField>
+    <ResponseField name="sender_id" type="string">Actor who triggered the event.</ResponseField>
+    <ResponseField name="content" type="string">Event content.</ResponseField>
+    <ResponseField name="created_at" type="string">Event timestamp.</ResponseField>
+    <ResponseField name="metadata" type="object">Additional event metadata.</ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="has_more" type="boolean">
+  Whether more events are available beyond the limit.
+</ResponseField>
+
+### Example
+
+```bash
+curl "https://api.ama2.me/api/v1/chat/threads/{thread_id}/events?since=5&limit=10" \
+  -H "Authorization: Bearer ama_eat_your_token_here"
+```
+
+```json
+{
+  "events": [
+    {
+      "event_id": "uuid",
+      "thread_id": "uuid",
+      "thread_seq": 6,
+      "event_type": "message_committed",
+      "sender_id": "user:uuid",
+      "content": "Hello!",
+      "created_at": "2026-04-09T12:00:00Z",
+      "metadata": null
+    }
+  ],
+  "has_more": false
+}
+```

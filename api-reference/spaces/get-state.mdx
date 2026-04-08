@@ -1,0 +1,26 @@
+---
+title: "Get Space State"
+api: "GET /api/v1/spaces/{space_id}/session/state"
+description: "Get the current state of a space."
+---
+
+## Get Space State
+
+Returns the current state of a space, including all actors, tiles, and assets.
+
+### Authentication
+
+<Note>Requires a valid user JWT token.</Note>
+
+### Path Parameters
+
+<ParamField path="space_id" type="string" required>
+  UUID of the space.
+</ParamField>
+
+### Example
+
+```bash
+curl https://api.ama2.me/api/v1/spaces/{space_id}/session/state \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```

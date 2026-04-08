@@ -1,0 +1,43 @@
+---
+title: "Apply Patch"
+api: "POST /api/v1/spaces/{space_id}/session/patch"
+description: "Apply a state patch to a space."
+---
+
+## Apply Space Patch
+
+Apply an operational patch to the space's state. Patches are versioned for conflict resolution.
+
+### Authentication
+
+<Note>Requires a valid user JWT token.</Note>
+
+### Path Parameters
+
+<ParamField path="space_id" type="string" required>
+  UUID of the space.
+</ParamField>
+
+### Request Body
+
+<ParamField body="target_version" type="integer" required>
+  The space state version this patch is based on. Used for optimistic concurrency control.
+</ParamField>
+
+<ParamField body="operations" type="array" required>
+  Array of patch operations to apply.
+</ParamField>
+
+### Example
+
+```bash
+curl -X POST https://api.ama2.me/api/v1/spaces/{space_id}/session/patch \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "target_version": 5,
+    "operations": [
+      {"op": "move", "path": "/actors/uuid/position", "value": {"x": 10, "y": 20}}
+    ]
+  }'
+```

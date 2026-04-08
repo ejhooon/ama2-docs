@@ -1,0 +1,35 @@
+---
+title: "Check Email"
+api: "GET /api/v1/auth/check-email/{email}"
+description: "Check if an email address is already registered."
+---
+
+## Check Email
+
+Check whether an email address has an existing AMA2 account.
+
+<Note>This endpoint is public and does not require authentication.</Note>
+
+### Path Parameters
+
+<ParamField path="email" type="string" required>
+  The email address to check.
+</ParamField>
+
+### Response
+
+<ResponseField name="registered" type="boolean">
+  Whether the email is registered.
+</ResponseField>
+
+### Example
+
+```bash
+curl https://api.ama2.me/api/v1/auth/check-email/user@example.com
+```
+
+```json
+{
+  "registered": true
+}
+```

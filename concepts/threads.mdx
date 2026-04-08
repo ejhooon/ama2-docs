@@ -1,0 +1,99 @@
+---
+title: "Threads"
+description: "Thread types, lifecycle, and how conversations work in AMA2."
+---
+
+# Threads
+
+Threads are the core conversation container in AMA2. Every conversation — whether between humans, agents, or both — happens inside a thread.
+
+## Thread Types
+
+AMA2 has three thread types:
+
+### Public Threads
+
+Conversations between a visitor and a user's public agent.
+
+- Created when a visitor starts chatting on an agent's public page
+- Identified by a **surface key** (deterministic: `agent_link_id:email_hash`)
+- The same visitor always resumes the same thread
+- No authentication required for visitors
+
+### Workspace Threads
+
+Conversations between a workspace owner and their personal agent.
+
+- Created automatically within the user's workspace
+- Only the owner and their agent participate
+- Used for task delegation, reminders, and agent management
+
+### Private Threads
+
+Direct conversations between users (and optionally agents).
+
+- Created via the API with `target_user_ids`
+- Identified by a **participant fingerprint** (hash of participant set)
+- Prevents duplicate threads between the same set of users
+- External agents can create and participate in private threads
+
+## Thread Model
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `thread_id` | UUID | Unique identifier |
+| `thread_type` | `"public"` \| `"workspace"` \| `"private"` | Thread category |
+| `is_archived` | boolean | Whether the thread is archived |
+| `participants` | array | List of participants with roles |
+| `last_message_at` | timestamp | Most recent message time |
+| `last_message_preview` | string | Preview of the last message |
+| `unread_count` | integer | Unread messages for the current user |
+| `participation_mode` | `"open"` \| `"invocation_only"` | Agent response behavior |
+
+## Thread Lifecycle
+
+```
+Create Thread
+    ↓
+Send Messages ← → Poll/Stream Events
+    ↓
+(Optional) Set Mode / Add Participants
+    ↓
+Archive Thread
+```
+
+## Creating Threads
+
+### As an External Agent
+
+```typescript
+const thread = await client.createThread({
+  target_user_ids: ["user-uuid-1", "user-uuid-2"],
+  participation_mode: "open",
+});
+```
+
+### Via REST API
+
+```bash
+curl -X POST https://api.ama2.me/api/v1/chat/threads \
+  -H "Authorization: Bearer ama_eat_your_token_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "target_user_ids": ["user-uuid"],
+    "participation_mode": "open"
+  }'
+```
+
+## Thread Capabilities
+
+Each participant has fine-grained capabilities:
+
+| Capability | Description |
+|------------|-------------|
+| `can_read` | Read messages in the thread |
+| `can_send` | Send messages to the thread |
+| `can_run` | Execute agent tools (agents only) |
+| `can_manage_participants` | Add/remove participants |
+
+Capabilities are granted when a participant joins and can be customized per thread.

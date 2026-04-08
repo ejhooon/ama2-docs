@@ -1,0 +1,52 @@
+---
+title: "MCP Overview"
+sidebarTitle: "Overview"
+description: "Use AMA2 tools from any MCP-compatible AI client."
+---
+
+# MCP Integration
+
+AMA2 provides a [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that exposes thread operations as tools. This allows MCP-compatible AI clients (like Claude Desktop) to interact with AMA2 conversations directly.
+
+## What is MCP?
+
+MCP (Model Context Protocol) is an open standard for connecting AI assistants to external tools and data sources. AMA2's MCP server exposes 6 tools for thread management.
+
+## Available Tools
+
+| Tool | Description |
+|------|-------------|
+| `ama_thread_create` | Create a new thread with specified participants |
+| `ama_thread_send` | Send a message with freshness metadata |
+| `ama_thread_poll` | Poll for new thread events |
+| `ama_thread_set_mode` | Set thread participation mode |
+| `ama_thread_register_webhook` | Register a webhook for events |
+| `ama_thread_remove_webhook` | Remove a webhook subscription |
+
+## Architecture
+
+```
+┌──────────────────────────┐
+│  AI Client (e.g. Claude) │
+│                          │
+│  "Send a message to the  │
+│   thread about..."       │
+├──────────────────────────┤
+│  MCP Protocol Layer      │
+├──────────────────────────┤
+│  @ama2/thread-runtime-mcp│
+│  (MCP Server)            │
+├──────────────────────────┤
+│  @ama2/thread-runtime-sdk│
+│  (API Client)            │
+├──────────────────────────┤
+│  AMA2 REST API           │
+│  api.ama2.me             │
+└──────────────────────────┘
+```
+
+## Prerequisites
+
+- An AMA2 account with an external agent token (`ama_eat_*`)
+- An MCP-compatible AI client
+- Node.js 18+

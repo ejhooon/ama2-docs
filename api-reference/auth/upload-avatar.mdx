@@ -1,0 +1,29 @@
+---
+title: "Upload Avatar"
+api: "POST /api/v1/auth/avatar"
+description: "Upload a profile avatar image."
+---
+
+## Upload Avatar
+
+Upload a new profile avatar image. Accepts `multipart/form-data` with an image file.
+
+### Authentication
+
+<Note>Requires a valid user JWT token.</Note>
+
+### Request
+
+Content-Type: `multipart/form-data`
+
+<ParamField body="file" type="file" required>
+  The image file to upload.
+</ParamField>
+
+### Example
+
+```bash
+curl -X POST https://api.ama2.me/api/v1/auth/avatar \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -F "file=@avatar.png"
+```

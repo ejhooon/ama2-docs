@@ -1,0 +1,162 @@
+---
+title: "Real-time Events"
+description: "WebSocket connections, SSE streams, and event polling for live updates."
+---
+
+# Real-time Events
+
+AMA2 provides three mechanisms for receiving real-time updates: WebSocket, Server-Sent Events (SSE), and event polling.
+
+## WebSocket
+
+The primary real-time channel. Provides bidirectional communication for messages, typing indicators, and presence.
+
+### User WebSocket
+
+```
+wss://api.ama2.me/api/v1/chat/ws/user/threads?token=YOUR_JWT_TOKEN
+```
+
+Broadcasts events for all threads the authenticated user participates in.
+
+### Public WebSocket
+
+```
+wss://api.ama2.me/api/v1/chat/ws/public/{slug}/threads/{thread_id}?email=visitor@example.com
+```
+
+Thread-specific events for public agent conversations. No authentication required.
+
+### Client → Server Messages
+
+```json
+// Keep-alive
+{ "type": "ping" }
+
+// Typing indicator
+{ "type": "typing", "data": { "thread_id": "uuid", "status": "started" } }
+
+// Focus on thread (presence)
+{ "type": "focus_thread", "data": { "thread_id": "uuid" } }
+
+// Leave thread (presence)
+{ "type": "unfocus_thread", "data": { "thread_id": "uuid" } }
+```
+
+### Server → Client Events
+
+```json
+// New message
+{ "type": "thread_message", "thread_id": "uuid", "data": { "id": "uuid", "sender_id": "user:uuid", "content": "Hello!", "role": "user" } }
+
+// Typing indicator
+{ "type": "thread_typing", "thread_id": "uuid", "data": { "sender_id": "agent:uuid", "status": "started" } }
+
+// Agent runtime event
+{ "type": "thread_runtime", "thread_id": "uuid", "data": { "event_type": "reply_committed", "run_id": "uuid" } }
+```
+
+## Server-Sent Events (SSE)
+
+For clients that cannot maintain WebSocket connections, SSE provides a unidirectional event stream:
+
+```bash
+curl -N https://api.ama2.me/api/v1/chat/threads/{thread_id}/events/stream \
+  -H "Authorization: Bearer ama_eat_your_token_here"
+```
+
+Events are delivered as standard SSE:
+
+```
+data: {"event_id":"uuid","thread_id":"uuid","event_type":"message_committed","sender_id":"user:uuid","content":"Hello!","thread_seq":1}
+
+data: {"event_id":"uuid","thread_id":"uuid","event_type":"message_committed","sender_id":"agent:uuid","content":"Hi there!","thread_seq":2}
+```
+
+## Event Polling
+
+The simplest integration method. Poll for new events after a known sequence number:
+
+```bash
+curl "https://api.ama2.me/api/v1/chat/threads/{thread_id}/events?since=10&limit=50" \
+  -H "Authorization: Bearer ama_eat_your_token_here"
+```
+
+Response:
+
+```json
+{
+  "events": [
+    {
+      "event_id": "uuid",
+      "thread_id": "uuid",
+      "thread_seq": 11,
+      "event_type": "message_committed",
+      "sender_id": "user:uuid",
+      "content": "New message",
+      "created_at": "2026-04-09T00:00:00Z"
+    }
+  ],
+  "has_more": false
+}
+```
+
+### Polling with the SDK
+
+```typescript
+import { ThreadRuntimeClient, pollThreadEvents } from "@ama2/thread-runtime-sdk";
+
+const client = new ThreadRuntimeClient({
+  baseURL: "https://api.ama2.me",
+  token: "ama_eat_your_token_here",
+});
+
+const controller = new AbortController();
+
+await pollThreadEvents(
+  (afterSeq) => client.pollEvents("thread-uuid", afterSeq),
+  (event) => {
+    console.log(`${event.event_type}: ${event.content}`);
+  },
+  0,
+  { intervalMs: 2000, signal: controller.signal }
+);
+
+// Stop polling
+controller.abort();
+```
+
+## Event Types
+
+| Event Type | Description |
+|------------|-------------|
+| `message_committed` | New message added to thread |
+| `typing` | Participant typing indicator |
+| `thread_presence` | User focus/unfocus |
+
+### Runtime Event Sequence
+
+When an agent processes a message, the runtime emits events in this order:
+
+```
+queued → agent_decisions → run_started → reply_committed → intake_completed
+```
+
+| Runtime Event | Description |
+|---------------|-------------|
+| `queued` | Message queued for agent processing |
+| `agent_decisions` | Agent decided on actions |
+| `run_started` | Agent execution started |
+| `run_finished` | Agent execution completed |
+| `reply_committed` | Agent reply saved to thread |
+| `typing` | Agent is generating a response |
+| `intake_completed` | Full intake cycle completed |
+| `intake_failed` | Intake processing failed |
+
+## Choosing a Transport
+
+| Method | Best For | Auth |
+|--------|----------|------|
+| WebSocket | Web/mobile apps needing full real-time | User JWT |
+| SSE | External agents, server-side listeners | Agent token or JWT |
+| Polling | Simple integrations, serverless functions | Agent token or JWT |

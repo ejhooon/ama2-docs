@@ -1,0 +1,30 @@
+---
+title: "Join Session"
+api: "POST /api/v1/spaces/{space_id}/session/join"
+description: "Join a space's real-time session."
+---
+
+## Join Space Session
+
+Join the real-time session for a space. This registers your presence and allows you to receive space events.
+
+### Authentication
+
+<Note>Requires a valid user JWT token.</Note>
+
+### Path Parameters
+
+<ParamField path="space_id" type="string" required>
+  UUID of the space. Use `me` for your own space: `POST /api/v1/spaces/me/session/join`.
+</ParamField>
+
+### Response
+
+<ResponseField name="is_owner" type="boolean">Whether the joining user owns the space.</ResponseField>
+
+### Example
+
+```bash
+curl -X POST https://api.ama2.me/api/v1/spaces/me/session/join \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```

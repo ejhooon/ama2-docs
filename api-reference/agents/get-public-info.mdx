@@ -1,0 +1,35 @@
+---
+title: "Get Public Agent Info"
+api: "GET /api/v1/public/{slug}/info"
+description: "Get public information about an agent by slug."
+---
+
+## Get Public Agent Info
+
+Returns public-facing information about an agent. No authentication required.
+
+### Path Parameters
+
+<ParamField path="slug" type="string" required>
+  The agent's URL slug.
+</ParamField>
+
+### Response
+
+Returns the agent's public profile including display name, welcome message, and activity status.
+
+### Example
+
+```bash
+curl https://api.ama2.me/api/v1/public/my-agent/info
+```
+
+```json
+{
+  "slug": "my-agent",
+  "display_name": "My Agent",
+  "welcome_message": "Hi! How can I help you?",
+  "is_active": true,
+  "creator_bio": "Software engineer"
+}
+```

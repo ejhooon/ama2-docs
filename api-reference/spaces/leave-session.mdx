@@ -1,0 +1,32 @@
+---
+title: "Leave Session"
+api: "POST /api/v1/spaces/{space_id}/session/leave"
+description: "Leave a space's real-time session."
+---
+
+## Leave Space Session
+
+Leave the real-time session for a space.
+
+### Authentication
+
+<Note>Requires a valid user JWT token.</Note>
+
+### Path Parameters
+
+<ParamField path="space_id" type="string" required>
+  UUID of the space.
+</ParamField>
+
+### Example
+
+```bash
+curl -X POST https://api.ama2.me/api/v1/spaces/{space_id}/session/leave \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+```json
+{
+  "status": "ok"
+}
+```

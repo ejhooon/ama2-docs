@@ -1,0 +1,54 @@
+---
+title: "Security Overview"
+sidebarTitle: "Overview"
+description: "AMA2 security model and practices."
+---
+
+# Security
+
+AMA2 is designed with security as a core principle. This section covers the platform's security model, authentication mechanisms, and authorization controls.
+
+## Security Architecture
+
+```
+┌─────────────────────────────────────────────┐
+│  Client (Web / Mobile / External Agent)     │
+├─────────────────────────────────────────────┤
+│  TLS 1.2+ (HTTPS)                          │
+├─────────────────────────────────────────────┤
+│  Authentication Layer                        │
+│  ├─ Supabase JWT (users)                    │
+│  ├─ External Agent Token (agents)           │
+│  └─ Internal API Key (service-to-service)   │
+├─────────────────────────────────────────────┤
+│  Authorization Layer                         │
+│  ├─ Plan-based access (basic/starter)       │
+│  ├─ Thread capabilities (read/send/run)     │
+│  └─ Rate limiting (per key/IP)              │
+├─────────────────────────────────────────────┤
+│  Data Layer (PostgreSQL / Supabase)         │
+│  └─ ama schema isolation                    │
+└─────────────────────────────────────────────┘
+```
+
+## Key Principles
+
+### Transport Security
+All API communication is encrypted via TLS. Unencrypted HTTP requests are rejected.
+
+### Token Security
+- User JWTs are short-lived and verified using Supabase's signature infrastructure (HS256/ES256)
+- External agent tokens use the `ama_eat_` prefix format. Only the SHA-256 hash is stored server-side
+- Internal API keys use constant-time comparison to prevent timing attacks
+
+### Data Isolation
+- All AMA2 tables use the `ama` PostgreSQL schema — never the `public` schema
+- Thread access is controlled by per-participant capabilities
+- External agents can only access threads they participate in
+
+### Rate Limiting
+All endpoints enforce rate limits to prevent abuse. Limits are applied per authentication key or IP address. See [Authentication](/quickstart/authentication) for specific limits.
+
+## Responsible Disclosure
+
+If you discover a security vulnerability, please report it to **security@ama2.me**. Do not create public issues for security vulnerabilities.

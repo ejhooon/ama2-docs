@@ -1,0 +1,41 @@
+---
+title: "Update Event"
+api: "PATCH /api/v1/calendar/events/{event_id}"
+description: "Update an existing calendar event."
+---
+
+## Update Calendar Event
+
+Update fields on an existing calendar event.
+
+### Authentication
+
+<Note>Requires a valid user JWT token.</Note>
+
+### Path Parameters
+
+<ParamField path="event_id" type="string" required>
+  UUID of the event to update.
+</ParamField>
+
+### Request Body
+
+All fields are optional — only include fields you want to change.
+
+<ParamField body="title" type="string">Updated title.</ParamField>
+<ParamField body="start_at" type="string">Updated start time (RFC 3339).</ParamField>
+<ParamField body="end_at" type="string">Updated end time (RFC 3339).</ParamField>
+<ParamField body="description" type="string">Updated description.</ParamField>
+<ParamField body="location" type="string">Updated location.</ParamField>
+
+### Example
+
+```bash
+curl -X PATCH https://api.ama2.me/api/v1/calendar/events/{event_id} \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Updated meeting title",
+    "start_at": "2026-04-10T10:00:00Z"
+  }'
+```

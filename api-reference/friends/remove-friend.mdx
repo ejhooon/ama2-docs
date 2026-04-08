@@ -1,0 +1,34 @@
+---
+title: "Remove Friend"
+api: "DELETE /api/v1/friends/{friend_user_id}"
+description: "Remove a friend connection."
+---
+
+## Remove Friend
+
+Remove a friendship connection with another user.
+
+### Authentication
+
+<Note>Requires a valid user JWT token.</Note>
+
+**Rate limit:** 10 requests/minute.
+
+### Path Parameters
+
+<ParamField path="friend_user_id" type="string" required>
+  UUID of the friend to remove.
+</ParamField>
+
+### Example
+
+```bash
+curl -X DELETE https://api.ama2.me/api/v1/friends/{friend_user_id} \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+```json
+{
+  "success": true
+}
+```

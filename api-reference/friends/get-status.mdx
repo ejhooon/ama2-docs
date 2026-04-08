@@ -1,0 +1,28 @@
+---
+title: "Get Friendship Status"
+api: "GET /api/v1/friends/{friend_user_id}/status"
+description: "Check the friendship status with a specific user."
+---
+
+## Get Friendship Status
+
+Check whether a friendship exists with a specific user.
+
+### Authentication
+
+<Note>Requires a valid user JWT token.</Note>
+
+**Rate limit:** 60 requests/minute.
+
+### Path Parameters
+
+<ParamField path="friend_user_id" type="string" required>
+  UUID of the user to check.
+</ParamField>
+
+### Example
+
+```bash
+curl https://api.ama2.me/api/v1/friends/{friend_user_id}/status \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```

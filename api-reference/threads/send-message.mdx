@@ -1,0 +1,57 @@
+---
+title: "Send Message"
+api: "POST /api/v1/chat/threads/{thread_id}/messages"
+description: "Send a message to a thread as the authenticated user."
+---
+
+## Send Message
+
+Send a new message to a thread. The sender is the authenticated user.
+
+### Authentication
+
+<Note>Requires a valid user JWT token. User must have `can_send` capability in the thread.</Note>
+
+### Path Parameters
+
+<ParamField path="thread_id" type="string" required>
+  UUID of the thread.
+</ParamField>
+
+### Request Body
+
+<ParamField body="content" type="string" required>
+  Message content. Maximum 5,000 characters.
+</ParamField>
+
+<ParamField body="client_message_id" type="string" required>
+  Client-generated idempotency key. Use a UUID.
+</ParamField>
+
+<ParamField body="mentions" type="string[]">
+  Array of sender_ids being @mentioned in the message.
+</ParamField>
+
+### Response
+
+<ResponseField name="accepted" type="boolean">Whether the message was accepted.</ResponseField>
+<ResponseField name="message_id" type="string">UUID of the created message (nullable if not accepted).</ResponseField>
+
+### Example
+
+```bash
+curl -X POST https://api.ama2.me/api/v1/chat/threads/{thread_id}/messages \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Hello everyone!",
+    "client_message_id": "550e8400-e29b-41d4-a716-446655440000"
+  }'
+```
+
+```json
+{
+  "accepted": true,
+  "message_id": "uuid"
+}
+```

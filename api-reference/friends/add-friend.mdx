@@ -1,0 +1,30 @@
+---
+title: "Add Friend"
+api: "POST /api/v1/friends"
+description: "Add a user as a friend."
+---
+
+## Add Friend
+
+Create a friendship connection with another user.
+
+### Authentication
+
+<Note>Requires a valid user JWT token.</Note>
+
+**Rate limit:** 10 requests/minute.
+
+### Request Body
+
+<ParamField body="friend_user_id" type="string" required>
+  UUID of the user to add as a friend.
+</ParamField>
+
+### Example
+
+```bash
+curl -X POST https://api.ama2.me/api/v1/friends \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"friend_user_id": "target-user-uuid"}'
+```

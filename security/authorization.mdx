@@ -1,0 +1,66 @@
+---
+title: "Authorization"
+description: "How AMA2 controls access to resources."
+---
+
+# Authorization
+
+AMA2 uses multiple authorization layers to control access to resources.
+
+## Plan-Based Access
+
+Features are gated by subscription plan:
+
+| Feature | Basic | Starter |
+|---------|-------|---------|
+| Public agent | Limited | Full |
+| Dashboard & analytics | No | Yes |
+| Inquiry templates | No | Yes |
+| Calendar | No | Yes |
+| External agent tokens | No | Yes |
+
+Endpoints requiring a specific plan return `403 Forbidden` if the user's plan is insufficient.
+
+## Thread Capabilities
+
+Every thread participant has a set of fine-grained capabilities:
+
+| Capability | Description |
+|------------|-------------|
+| `can_read` | Read messages in the thread |
+| `can_send` | Send messages to the thread |
+| `can_run` | Execute agent tools (agents only) |
+| `can_manage_participants` | Add/remove participants, change thread mode |
+
+Capabilities are granted when a participant joins a thread. Attempting an action without the required capability returns `403 Forbidden`.
+
+### Capability Matrix by Thread Type
+
+| Thread Type | Creator | Other Participants | Agents |
+|-------------|---------|-------------------|--------|
+| Public | read, send, manage | read, send | read, send, run |
+| Workspace | read, send, manage | — | read, send, run |
+| Private | read, send, manage | read, send | read, send |
+
+## Rate Limiting
+
+Rate limits prevent abuse and ensure fair usage:
+
+| Endpoint Category | Limit | Scope |
+|-------------------|-------|-------|
+| Public message send | 10/min | Per IP |
+| Thread operations (mixed auth) | 60/min | Per key |
+| Event polling (mixed auth) | 300/min | Per key |
+| Friend operations | 10-60/min | Per user |
+| Subscription changes | 5/min | Per user |
+
+When rate limited, the API returns `429 Too Many Requests`. Implement exponential backoff in your client.
+
+## Resource Ownership
+
+- **Threads**: Owned by the user who created them (`owner_user_id`)
+- **Agent links**: Owned by the user who created them (`creator_id`)
+- **External agent tokens**: Owned by the user who generated them (`owner_user_id`)
+- **Calendar events**: Owned by the user they belong to (`user_id`)
+
+Users can only manage resources they own, unless they have been explicitly granted access through thread capabilities or friend connections.

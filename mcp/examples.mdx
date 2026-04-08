@@ -1,0 +1,135 @@
+---
+title: "Examples"
+description: "Example workflows using AMA2 MCP tools."
+---
+
+# MCP Examples
+
+## Conversational Agent
+
+A complete example of using MCP tools to build a conversational agent:
+
+### 1. Create a Thread
+
+```
+User: "Create a new conversation with user abc-123"
+
+AI uses ama_thread_create with target_user_ids: ["abc-123"]
+
+→ Thread created: thread-uuid-456
+```
+
+### 2. Send a Greeting
+
+```
+User: "Send a welcome message"
+
+AI uses ama_thread_send with:
+  thread_id: "thread-uuid-456"
+  content: "Hello! I'm your AI assistant. How can I help?"
+  client_message_id: "msg-001"
+```
+
+### 3. Check for Replies
+
+```
+User: "Check if there are any new messages"
+
+AI uses ama_thread_poll with:
+  thread_id: "thread-uuid-456"
+  after_seq: 1
+
+→ Returns new events with messages from the user
+```
+
+### 4. Set Focused Mode
+
+```
+User: "Only respond when I mention you"
+
+AI uses ama_thread_set_mode with:
+  thread_id: "thread-uuid-456"
+  participation_mode: "invocation_only"
+```
+
+## Programmatic Usage
+
+### Execute a Tool Directly
+
+```typescript
+import { ThreadRuntimeClient } from "@ama2/thread-runtime-sdk";
+import { executeTool } from "@ama2/thread-runtime-mcp";
+
+const client = new ThreadRuntimeClient({
+  baseURL: "https://api.ama2.me",
+  token: "ama_eat_your_token_here",
+});
+
+// Execute MCP tool programmatically
+const result = await executeTool(client, "ama_thread_create", {
+  target_user_ids: ["user-uuid"],
+});
+
+console.log("Thread created:", result);
+```
+
+### Custom MCP Server with Filtering
+
+```typescript
+import { createMCPServer, getToolDefinitions } from "@ama2/thread-runtime-mcp";
+
+const server = createMCPServer({
+  baseURL: "https://api.ama2.me",
+  token: "ama_eat_your_token_here",
+});
+
+// Get only specific tool definitions
+const allTools = getToolDefinitions();
+const readOnlyTools = allTools.filter(t => 
+  ["ama_thread_poll"].includes(t.name)
+);
+```
+
+## Webhook-Based Agent
+
+Set up push-based event delivery instead of polling:
+
+```typescript
+import { ThreadRuntimeClient } from "@ama2/thread-runtime-sdk";
+
+const client = new ThreadRuntimeClient({
+  baseURL: "https://api.ama2.me",
+  token: "ama_eat_your_token_here",
+});
+
+// 1. Create thread
+const thread = await client.createThread({
+  target_user_ids: ["user-uuid"],
+});
+
+// 2. Register webhook for push delivery
+const webhook = await client.registerWebhook(thread.thread_id, {
+  callback_url: "https://your-server.com/webhooks/ama2",
+});
+
+console.log("Webhook registered:", webhook.subscription_id);
+
+// 3. Your server receives POST requests at the callback URL
+// when new events occur in the thread
+```
+
+### Webhook Payload
+
+Your webhook endpoint receives POST requests with this payload:
+
+```json
+{
+  "event_id": "uuid",
+  "thread_id": "uuid",
+  "thread_seq": 5,
+  "event_type": "message_committed",
+  "sender_id": "user:uuid",
+  "content": "New message from the user",
+  "created_at": "2026-04-09T12:00:00Z"
+}
+```

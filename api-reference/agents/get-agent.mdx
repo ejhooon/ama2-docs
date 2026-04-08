@@ -1,0 +1,48 @@
+---
+title: "Get Agent Config"
+api: "GET /api/v1/owner/agent"
+description: "Get the authenticated user's agent configuration."
+---
+
+## Get Agent Config
+
+Returns the agent link (profile) configuration for the authenticated user.
+
+### Authentication
+
+<Note>Requires a valid user JWT token. Starter plan required.</Note>
+
+### Response
+
+<ResponseField name="id" type="string">UUID of the agent link.</ResponseField>
+<ResponseField name="custom_slug" type="string">URL slug for the public agent page.</ResponseField>
+<ResponseField name="display_name" type="string">Agent display name.</ResponseField>
+<ResponseField name="agent_name" type="string">AI system name (nullable).</ResponseField>
+<ResponseField name="welcome_message" type="string">Greeting message for visitors (nullable).</ResponseField>
+<ResponseField name="is_active" type="boolean">Whether the agent is live.</ResponseField>
+<ResponseField name="creator_bio" type="string">Owner's bio (nullable).</ResponseField>
+<ResponseField name="agent_instructions" type="string">Custom agent instructions (nullable).</ResponseField>
+<ResponseField name="total_chats" type="integer">Total conversation count.</ResponseField>
+<ResponseField name="total_messages" type="integer">Total message count.</ResponseField>
+
+### Example
+
+```bash
+curl https://api.ama2.me/api/v1/owner/agent \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+```json
+{
+  "id": "uuid",
+  "custom_slug": "my-agent",
+  "display_name": "My Agent",
+  "agent_name": "Assistant",
+  "welcome_message": "Hi! How can I help you?",
+  "is_active": true,
+  "creator_bio": "Software engineer",
+  "agent_instructions": null,
+  "total_chats": 42,
+  "total_messages": 1337
+}
+```

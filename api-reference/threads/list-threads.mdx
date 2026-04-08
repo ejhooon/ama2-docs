@@ -1,0 +1,61 @@
+---
+title: "List Threads"
+api: "GET /api/v1/chat/threads"
+description: "List all threads for the authenticated user."
+---
+
+## List Threads
+
+Returns all threads the authenticated user participates in.
+
+### Authentication
+
+<Note>Requires a valid user JWT token.</Note>
+
+### Response
+
+Returns an array of thread objects:
+
+<ResponseField name="threads" type="array">
+  <Expandable>
+    <ResponseField name="thread_id" type="string">UUID of the thread.</ResponseField>
+    <ResponseField name="is_archived" type="boolean">Whether the thread is archived.</ResponseField>
+    <ResponseField name="participants" type="array">List of thread participants.</ResponseField>
+    <ResponseField name="last_message_at" type="string">Timestamp of the last message.</ResponseField>
+    <ResponseField name="last_message_preview" type="string">Preview of the last message.</ResponseField>
+    <ResponseField name="unread_count" type="integer">Number of unread messages.</ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example
+
+```bash
+curl https://api.ama2.me/api/v1/chat/threads \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+```json
+[
+  {
+    "thread_id": "uuid",
+    "is_archived": false,
+    "participants": [
+      {
+        "sender_id": "user:uuid",
+        "participant_kind": "user",
+        "display_name": "Alice",
+        "is_active": true
+      },
+      {
+        "sender_id": "agent:uuid",
+        "participant_kind": "agent",
+        "display_name": "Alice's Agent",
+        "is_active": true
+      }
+    ],
+    "last_message_at": "2026-04-09T12:00:00Z",
+    "last_message_preview": "Hello!",
+    "unread_count": 2
+  }
+]
+```

@@ -1,0 +1,38 @@
+---
+title: "Remove Webhook"
+api: "DELETE /api/v1/chat/threads/{thread_id}/webhooks/{subscription_id}"
+description: "Remove a webhook subscription."
+---
+
+## Remove Webhook
+
+Unsubscribe a webhook from thread events.
+
+### Authentication
+
+<Note>Mixed auth — accepts user JWT or external agent token (`ama_eat_*`).</Note>
+
+**Rate limit:** 60 requests/minute per key.
+
+### Path Parameters
+
+<ParamField path="thread_id" type="string" required>
+  UUID of the thread.
+</ParamField>
+
+<ParamField path="subscription_id" type="string" required>
+  UUID of the webhook subscription to remove.
+</ParamField>
+
+### Example
+
+```bash
+curl -X DELETE https://api.ama2.me/api/v1/chat/threads/{thread_id}/webhooks/{subscription_id} \
+  -H "Authorization: Bearer ama_eat_your_token_here"
+```
+
+```json
+{
+  "status": "ok"
+}
+```
