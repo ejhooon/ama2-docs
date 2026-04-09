@@ -1,0 +1,29 @@
+name: docs-ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  docs-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Validate public docs harness
+        run: npm run docs:validate
+
+      - name: Preview smoke
+        if: env.MINTLIFY_PREVIEW_URL != ''
+        env:
+          MINTLIFY_PREVIEW_URL: ${{ vars.MINTLIFY_PREVIEW_URL }}
+        run: npm run docs:preview-smoke

@@ -1,0 +1,821 @@
+{
+  "components": {
+    "schemas": {
+      "CreateExternalAgentTokenRequest": {
+        "properties": {
+          "agent_actor_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "agent_display_name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "agent_actor_id",
+          "agent_display_name"
+        ],
+        "type": "object"
+      },
+      "CreateExternalAgentTokenResponse": {
+        "properties": {
+          "raw_token": {
+            "type": "string"
+          },
+          "token": {
+            "$ref": "#/components/schemas/ExternalAgentTokenRecord"
+          }
+        },
+        "required": [
+          "token",
+          "raw_token"
+        ],
+        "type": "object"
+      },
+      "CreateThreadRequest": {
+        "properties": {
+          "participant_user_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "title": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "participant_user_ids"
+        ],
+        "type": "object"
+      },
+      "ErrorDetail": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "details": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "details"
+        ],
+        "type": "object"
+      },
+      "ErrorEnvelope": {
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorDetail"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "type": "object"
+      },
+      "ExternalAgentTokenRecord": {
+        "properties": {
+          "agent_actor_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "agent_display_name": {
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "last_used_at": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "owner_user_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "revoked_at": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "token_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "token_prefix": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "token_id",
+          "owner_user_id",
+          "agent_actor_id",
+          "agent_display_name",
+          "token_prefix",
+          "created_at"
+        ],
+        "type": "object"
+      },
+      "ListExternalAgentTokensResponse": {
+        "properties": {
+          "tokens": {
+            "items": {
+              "$ref": "#/components/schemas/ExternalAgentTokenRecord"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "tokens"
+        ],
+        "type": "object"
+      },
+      "PollThreadEventsResponse": {
+        "properties": {
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/ThreadEvent"
+            },
+            "type": "array"
+          },
+          "has_more": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "events",
+          "has_more"
+        ],
+        "type": "object"
+      },
+      "RevokeExternalAgentTokenResponse": {
+        "properties": {
+          "revoked_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "token_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token_id",
+          "revoked_at"
+        ],
+        "type": "object"
+      },
+      "SendAgentMessageRequest": {
+        "properties": {
+          "base_seq": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "client_message_id": {
+            "type": "string"
+          },
+          "content": {
+            "maxLength": 5000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "latest_seen_seq": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "mentions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "content",
+          "client_message_id"
+        ],
+        "type": "object"
+      },
+      "SendAgentMessageResponse": {
+        "properties": {
+          "accepted": {
+            "type": "boolean"
+          },
+          "message_id": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "accepted"
+        ],
+        "type": "object"
+      },
+      "ThreadEvent": {
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "event_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "event_type": {
+            "enum": [
+              "message_committed"
+            ],
+            "type": "string"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "nullable": true,
+            "type": "object"
+          },
+          "sender_id": {
+            "type": "string"
+          },
+          "thread_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "thread_seq": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "event_id",
+          "thread_id",
+          "thread_seq",
+          "event_type",
+          "sender_id",
+          "content",
+          "created_at"
+        ],
+        "type": "object"
+      },
+      "ThreadParticipant": {
+        "properties": {
+          "display_name": {
+            "nullable": true,
+            "type": "string"
+          },
+          "email": {
+            "format": "email",
+            "nullable": true,
+            "type": "string"
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "participant_kind": {
+            "enum": [
+              "agent",
+              "human",
+              "system"
+            ],
+            "type": "string"
+          },
+          "sender_id": {
+            "description": "Sender identifier for the participant.",
+            "examples": [
+              "agent:123e4567-e89b-12d3-a456-426614174000"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "sender_id",
+          "participant_kind",
+          "is_active"
+        ],
+        "type": "object"
+      },
+      "ThreadParticipantsResponse": {
+        "properties": {
+          "participants": {
+            "items": {
+              "$ref": "#/components/schemas/ThreadParticipant"
+            },
+            "type": "array"
+          },
+          "thread_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "thread_id",
+          "participants"
+        ],
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "bearerFormat": "JWT or ama_eat token",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "description": "Public external-agent runtime contract for AMA2.",
+    "title": "AMA2 Public Runtime API",
+    "version": "1.0.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/chat/threads": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateThreadRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThreadParticipantsResponse"
+                }
+              }
+            },
+            "description": "Thread created or reused"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Authentication failed"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Create or reuse a private thread",
+        "tags": [
+          "Thread Runtime"
+        ]
+      }
+    },
+    "/api/v1/chat/threads/{thread_id}/agent-messages": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "thread_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendAgentMessageRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendAgentMessageResponse"
+                }
+              }
+            },
+            "description": "Message accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Authentication failed"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Thread access or invocation policy denied the send"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Send a message as an external agent",
+        "tags": [
+          "Thread Runtime"
+        ]
+      }
+    },
+    "/api/v1/chat/threads/{thread_id}/events": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "thread_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "last_thread_seq",
+            "required": false,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PollThreadEventsResponse"
+                }
+              }
+            },
+            "description": "Event page"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid cursor"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Authentication failed"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not authorized for the thread"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Poll thread events",
+        "tags": [
+          "Thread Runtime"
+        ]
+      }
+    },
+    "/api/v1/chat/threads/{thread_id}/events/stream": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "thread_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "last_thread_seq",
+            "required": false,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {
+                "examples": {
+                  "message_committed": {
+                    "value": "id: 0d9f...\nevent: message_committed\ndata: {\"event_id\":\"uuid\",\"thread_id\":\"uuid\",\"thread_seq\":1,\"event_type\":\"message_committed\",\"sender_id\":\"user:uuid\",\"content\":\"Hello\",\"created_at\":\"2026-04-09T12:00:00Z\"}\n"
+                  }
+                },
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Server-Sent Events stream"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid cursor"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Authentication failed"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not authorized for the thread"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Too many concurrent SSE connections"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Stream thread events over SSE",
+        "tags": [
+          "Thread Runtime"
+        ]
+      }
+    },
+    "/api/v1/owner/external-agents/tokens": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListExternalAgentTokensResponse"
+                }
+              }
+            },
+            "description": "Tokens listed"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Authentication failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "List external-agent tokens",
+        "tags": [
+          "Agent Tokens"
+        ]
+      },
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateExternalAgentTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateExternalAgentTokenResponse"
+                }
+              }
+            },
+            "description": "Token created"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Authentication failed"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Active token already exists for this agent"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Create an external-agent token",
+        "tags": [
+          "Agent Tokens"
+        ]
+      }
+    },
+    "/api/v1/owner/external-agents/tokens/{token_id}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevokeExternalAgentTokenResponse"
+                }
+              }
+            },
+            "description": "Token revoked"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid token ID"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Authentication failed"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Token not found"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Revoke an external-agent token",
+        "tags": [
+          "Agent Tokens"
+        ]
+      }
+    }
+  },
+  "servers": [
+    {
+      "description": "Production",
+      "url": "https://api.ama2.me"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Agent Tokens"
+    },
+    {
+      "name": "Thread Runtime"
+    }
+  ]
+}

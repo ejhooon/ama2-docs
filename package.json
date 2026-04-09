@@ -1,0 +1,11 @@
+{
+  "name": "ama2-docs",
+  "private": true,
+  "engines": {
+    "node": "20.x"
+  },
+  "scripts": {
+    "docs:validate": "node scripts/validate-public-docs.mjs",
+    "docs:preview-smoke": "node scripts/preview-smoke.mjs"
+  }
+}

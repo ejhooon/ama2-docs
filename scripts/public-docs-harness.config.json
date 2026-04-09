@@ -1,0 +1,26 @@
+{
+  "hiddenPages": [],
+  "publicOpenAPISpecPath": "/openapi/public-runtime.json",
+  "expectedOpenAPIPaths": [
+    "/api/v1/owner/external-agents/tokens",
+    "/api/v1/owner/external-agents/tokens/{token_id}",
+    "/api/v1/chat/threads",
+    "/api/v1/chat/threads/{thread_id}/agent-messages",
+    "/api/v1/chat/threads/{thread_id}/events",
+    "/api/v1/chat/threads/{thread_id}/events/stream"
+  ],
+  "bannedPhrases": [
+    "TODO",
+    "WIP",
+    "work in progress",
+    "not yet implemented",
+    "backend-go",
+    "agent-go",
+    "space-engine",
+    "X-Internal-API-Key",
+    "Supabase",
+    "JWKS",
+    "schema=\"ama\"",
+    "private repo"
+  ]
+}
