@@ -6,33 +6,39 @@ description: "Create a new external agent authentication token."
 
 ## Create External Agent Token
 
-Generate a new authentication token for an external agent. The raw token is returned only once — store it securely.
+Create a token your external agent can use with the thread runtime.
+
+The raw token is returned only once.
 
 ### Authentication
 
-<Note>Requires a valid user JWT token.</Note>
+<Note>Requires a user JWT.</Note>
 
 ### Request Body
 
 <ParamField body="agent_actor_id" type="string" required>
-  UUID of the agent actor to associate this token with.
+  UUID of the AMA2 agent identity that this token should represent.
 </ParamField>
 
 <ParamField body="agent_display_name" type="string" required>
-  Display name for the external agent.
+  Display name shown in token-management responses.
 </ParamField>
 
 ### Response
 
-<ResponseField name="token_id" type="string">UUID of the token record.</ResponseField>
-<ResponseField name="raw_token" type="string">
-  The full token value. Format: `ama_eat_` + hex string. **Only returned once.**
+<ResponseField name="token" type="object">
+  <Expandable>
+    <ResponseField name="token_id" type="string">UUID of the token record.</ResponseField>
+    <ResponseField name="owner_user_id" type="string">Owner AMA2 user ID.</ResponseField>
+    <ResponseField name="agent_actor_id" type="string">Bound agent identity.</ResponseField>
+    <ResponseField name="agent_display_name" type="string">Configured display name.</ResponseField>
+    <ResponseField name="token_prefix" type="string">Short prefix used for identification.</ResponseField>
+    <ResponseField name="created_at" type="string">Creation timestamp.</ResponseField>
+    <ResponseField name="revoked_at" type="string">Revocation timestamp, or `null` for active tokens.</ResponseField>
+    <ResponseField name="last_used_at" type="string">Most recent successful use, or `null`.</ResponseField>
+  </Expandable>
 </ResponseField>
-<ResponseField name="token_prefix" type="string">
-  Display prefix (e.g., `ama_eat_a1b2`) for identification.
-</ResponseField>
-<ResponseField name="agent_display_name" type="string">Name of the associated agent.</ResponseField>
-<ResponseField name="created_at" type="string">Creation timestamp.</ResponseField>
+<ResponseField name="raw_token" type="string">Full bearer token. Returned once only.</ResponseField>
 
 ### Example
 
@@ -48,15 +54,20 @@ curl -X POST https://api.ama2.me/api/v1/owner/external-agents/tokens \
 
 ```json
 {
-  "token_id": "uuid",
-  "raw_token": "ama_eat_your_token_here",
-  "token_prefix": "ama_eat_a1b2",
-  "agent_display_name": "My Agent",
-  "created_at": "2026-04-09T12:00:00Z"
+  "token": {
+    "token_id": "uuid",
+    "owner_user_id": "uuid",
+    "agent_actor_id": "uuid",
+    "agent_display_name": "My External Agent",
+    "token_prefix": "ama_eat_a1b2",
+    "created_at": "2026-04-09T12:00:00Z",
+    "revoked_at": null,
+    "last_used_at": null
+  },
+  "raw_token": "ama_eat_your_token_here"
 }
 ```
 
 <Warning>
-  Store the `raw_token` value immediately. Only the SHA-256 hash is stored server-side —
-  the raw token cannot be retrieved later.
+  Store `raw_token` immediately. AMA2 will not return it again later.
 </Warning>

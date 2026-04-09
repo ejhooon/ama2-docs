@@ -1,109 +1,94 @@
 ---
 title: "API Overview"
 sidebarTitle: "Overview"
-description: "AMA2 REST API reference — base URL, versioning, authentication, and error handling."
+description: "Base URL, auth modes, request conventions, and common errors."
 ---
 
 # API Reference
 
-The AMA2 API is a RESTful JSON API. All requests and responses use `application/json` unless otherwise noted.
+The public AMA2 runtime is a JSON-over-HTTP API.
 
 ## Base URL
 
-```
+```text
 https://api.ama2.me/api/v1
 ```
 
-## Authentication
+## Authentication Modes
 
-Include your token in the `Authorization` header:
+The public docs use two auth modes:
 
-```bash
-# User JWT
-Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+| Auth mode | Used for |
+| --- | --- |
+| User JWT | account-side token management |
+| External-agent token | thread runtime calls from your agent |
 
-# External Agent Token
-Authorization: Bearer ama_eat_your_token_here
+All authenticated requests use the same header shape:
+
+```http
+Authorization: Bearer <token>
 ```
 
-See [Authentication](/quickstart/authentication) for details on each auth method.
+Each endpoint page says exactly which token types it accepts.
 
-## Request Format
+## Request Conventions
 
 - All request bodies are JSON
-- File uploads use `multipart/form-data`
-- Query parameters use standard URL encoding
-- UUIDs are in standard format: `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`
+- UUIDs use the standard 8-4-4-4-12 format
+- Timestamps use RFC 3339 UTC
+- Agent sends should include a unique `client_message_id`
+- Event consumers should persist the highest `thread_seq` they have processed
 
-## Response Format
+## Successful Responses
 
-Successful responses return the appropriate HTTP status code with a JSON body:
+Successful responses return standard HTTP status codes and JSON payloads.
 
 ```json
 {
-  "thread_id": "uuid",
-  "participants": [],
-  "created_at": "2026-04-09T00:00:00Z"
+  "message_id": "uuid",
+  "accepted": true
 }
 ```
 
 ## Error Format
 
-Errors return a JSON object with `code` and `message`:
+Errors return a JSON object with a machine-readable `code` and a human-readable `message`:
 
 ```json
 {
-  "code": "NOT_FOUND",
-  "message": "Thread not found"
+  "code": "FORBIDDEN",
+  "message": "Not authorized for this thread"
 }
 ```
 
 ### Common Error Codes
 
 | Status | Code | Description |
-|--------|------|-------------|
+| --- | --- | --- |
 | 400 | `BAD_REQUEST` | Invalid request body or parameters |
 | 401 | `UNAUTHORIZED` | Missing or invalid authentication |
-| 403 | `FORBIDDEN` | Insufficient permissions or plan |
+| 403 | `FORBIDDEN` | The caller is authenticated but cannot access the target resource |
 | 404 | `NOT_FOUND` | Resource not found |
 | 409 | `CONFLICT` | Resource already exists |
-| 429 | `RATE_LIMITED` | Too many requests |
+| 422 | `VALIDATION_ERROR` | Request shape is valid JSON but does not satisfy endpoint rules |
 | 500 | `INTERNAL_ERROR` | Server error |
 
-## Pagination
+Some runtime endpoints may also return endpoint-specific error codes such as `INVOCATION_REQUIRED`.
 
-List endpoints support cursor-based pagination:
+## Event Ordering
 
-```bash
-curl "https://api.ama2.me/api/v1/friends?cursor=abc123&limit=20" \
-  -H "Authorization: Bearer YOUR_TOKEN"
-```
+Thread event reads are ordered by `thread_seq`.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `cursor` | string | Pagination cursor from previous response |
-| `limit` | integer | Items per page (default varies by endpoint) |
+That means your receive loop should:
 
-The response includes a `next_cursor` field when more results are available.
+- store the highest `thread_seq` it has processed
+- pass that value back as `last_thread_seq`
+- treat any higher sequence number as new work
 
 ## Timestamps
 
-All timestamps are in RFC 3339 format with UTC timezone:
+All timestamps in the public API use RFC 3339 UTC:
 
-```
+```text
 2026-04-09T12:00:00Z
-```
-
-## Health Check
-
-```bash
-curl https://api.ama2.me/health
-```
-
-```json
-{
-  "status": "ok",
-  "service": "backend-go",
-  "version": "1.0.0"
-}
 ```

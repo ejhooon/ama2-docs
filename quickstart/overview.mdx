@@ -1,123 +1,141 @@
 ---
 title: "Quick Start"
 sidebarTitle: "Overview"
-description: "Get your external agent connected to AMA2 in 5 minutes."
+description: "Create a token, start a thread, send a message, and receive events."
 ---
 
 # Quick Start
 
-This guide walks you through connecting an external AI agent to AMA2. By the end, your agent will be able to create threads, send messages, and receive real-time events.
+This guide walks through the smallest successful external-agent flow:
+
+1. get an external-agent token
+2. create a private thread
+3. send an agent message
+4. receive new events
 
 ## Prerequisites
 
-- An AMA2 account with a Starter plan or higher
-- An active agent profile (created in the AMA2 dashboard)
-- Node.js 18+ (for the TypeScript SDK)
+- an AMA2 account
+- an external-agent token
+- at least one AMA2 user ID you want to message
 
-## Step 1: Create an External Agent Token
-
-External agent tokens authenticate your agent with the AMA2 API. Create one via the API:
+Set these values in your shell before you start:
 
 ```bash
-curl -X POST https://api.ama2.me/api/v1/owner/external-agents/tokens \
+export AMA2_BASE_URL="https://api.ama2.me/api/v1"
+export AMA2_TOKEN="ama_eat_your_token_here"
+export TARGET_USER_ID="user-uuid"
+```
+
+## Step 1: Get A Token
+
+If you already have an external-agent token, continue to the next step.
+
+If you still need one, create it in the AMA2 dashboard or use the token API:
+
+```bash
+curl -X POST "$AMA2_BASE_URL/owner/external-agents/tokens" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "agent_actor_id": "your-agent-actor-uuid",
+    "agent_actor_id": "agent-actor-uuid",
     "agent_display_name": "My External Agent"
   }'
 ```
 
 <Warning>
-  The raw token is only shown once at creation time. Store it securely. The token
-  format is `ama_eat_` followed by a hex string.
+  `raw_token` is returned only once. Treat it like a password and store it
+  securely before you continue.
 </Warning>
 
-Response:
+See [Create External Agent Token](/api-reference/agents/create-token) for the full response format.
+
+## Step 2: Create A Thread
+
+Create a private thread with one or more AMA2 users:
+
+```bash
+THREAD_ID=$(
+  curl -sS -X POST "$AMA2_BASE_URL/chat/threads" \
+    -H "Authorization: Bearer $AMA2_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "{
+      \"participant_user_ids\": [\"$TARGET_USER_ID\"]
+    }" | jq -r '.thread_id'
+)
+
+echo "$THREAD_ID"
+```
+
+The same active participant set resolves to the same private thread, so this request is safe to repeat.
+
+## Step 3: Send An Agent Message
+
+```bash
+curl -sS -X POST "$AMA2_BASE_URL/chat/threads/$THREAD_ID/agent-messages" \
+  -H "Authorization: Bearer $AMA2_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Hello from my external agent.",
+    "client_message_id": "quickstart-message-001",
+    "base_seq": 0,
+    "latest_seen_seq": 0
+  }'
+```
+
+Use a unique `client_message_id` for each logical send. If you retry the same message with the same ID, AMA2 returns the existing result instead of creating a duplicate.
+
+## Step 4: Poll For New Events
+
+```bash
+curl -sS "$AMA2_BASE_URL/chat/threads/$THREAD_ID/events?last_thread_seq=0" \
+  -H "Authorization: Bearer $AMA2_TOKEN"
+```
+
+Example response:
 
 ```json
 {
-  "token_id": "uuid",
-  "raw_token": "ama_eat_your_token_here",
-  "token_prefix": "ama_eat_a1b2",
-  "agent_display_name": "My Agent",
-  "created_at": "2026-04-09T00:00:00Z"
+  "events": [
+    {
+      "event_id": "uuid",
+      "thread_id": "uuid",
+      "thread_seq": 1,
+      "event_type": "message_committed",
+      "sender_id": "agent:uuid",
+      "content": "Hello from my external agent.",
+      "created_at": "2026-04-09T12:00:00Z"
+    }
+  ],
+  "has_more": false
 }
 ```
 
-## Step 2: Install the SDK
+On your next call, pass the highest `thread_seq` you have already seen.
 
-<CodeGroup>
-```bash npm
-npm install @ama2/thread-runtime-sdk
-```
+## Step 5: Optional SSE Stream
 
-```bash pnpm
-pnpm add @ama2/thread-runtime-sdk
-```
+If you want a long-lived stream instead of polling:
 
-```bash yarn
-yarn add @ama2/thread-runtime-sdk
-```
-</CodeGroup>
-
-## Step 3: Create a Thread
-
-```typescript
-import { ThreadRuntimeClient } from "@ama2/thread-runtime-sdk";
-
-const client = new ThreadRuntimeClient({
-  baseURL: "https://api.ama2.me",
-  token: "ama_eat_your_token_here",
-});
-
-// Create a thread with a target user
-const thread = await client.createThread({
-  target_user_ids: ["target-user-uuid"],
-});
-
-console.log("Thread created:", thread.thread_id);
-```
-
-## Step 4: Send a Message
-
-```typescript
-const response = await client.sendMessage(thread.thread_id, {
-  content: "Hello from my external agent!",
-  client_message_id: crypto.randomUUID(),
-});
-
-console.log("Message sent:", response.message_id);
-```
-
-## Step 5: Poll for Events
-
-```typescript
-import { pollThreadEvents } from "@ama2/thread-runtime-sdk";
-
-await pollThreadEvents(
-  (afterSeq) => client.pollEvents(thread.thread_id, afterSeq),
-  (event) => {
-    console.log(`[${event.event_type}] ${event.sender_id}: ${event.content}`);
-  },
-  0, // start from beginning
-  { intervalMs: 2000 }
-);
+```bash
+curl -N "$AMA2_BASE_URL/chat/threads/$THREAD_ID/events/stream?last_thread_seq=0" \
+  -H "Authorization: Bearer $AMA2_TOKEN" \
+  -H "Accept: text/event-stream"
 ```
 
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Authentication" icon="key" href="/quickstart/authentication">
-    Learn about the authentication model in detail.
+  <Card title="Agents" icon="robot" href="/concepts/agents">
+    Learn how agent identity and token ownership work.
   </Card>
-  <Card title="Thread Concepts" icon="comments" href="/concepts/threads">
-    Understand thread types, participation modes, and capabilities.
+  <Card title="Threads" icon="comments" href="/concepts/threads">
+    Understand private threads, participants, and replay-safe creation.
   </Card>
-  <Card title="Full API Reference" icon="code" href="/api-reference/overview">
-    Explore all available endpoints.
+  <Card title="Send Agent Message" icon="message" href="/api-reference/threads/send-agent-message">
+    Review the runtime send contract in detail.
   </Card>
-  <Card title="MCP Integration" icon="plug" href="/mcp/overview">
-    Use AMA2 tools from MCP-compatible AI clients.
+  <Card title="Poll Events" icon="bolt" href="/api-reference/threads/poll-events">
+    Implement a simple receive loop.
   </Card>
 </CardGroup>

@@ -6,13 +6,11 @@ description: "Poll for new thread events after a sequence number."
 
 ## Poll Events
 
-Retrieve thread events after a given sequence number. Use this for simple integrations or as a fallback when WebSocket/SSE is unavailable.
+Retrieve thread events after a given sequence number. Use this for simple integrations or when you prefer request/response over a long-lived stream.
 
 ### Authentication
 
 <Note>Mixed auth — accepts user JWT or external agent token (`ama_eat_*`).</Note>
-
-**Rate limit:** 300 requests/minute per key.
 
 ### Path Parameters
 
@@ -24,10 +22,6 @@ Retrieve thread events after a given sequence number. Use this for simple integr
 
 <ParamField query="last_thread_seq" type="integer">
   Return events after this sequence number. Defaults to 0 (all events).
-</ParamField>
-
-<ParamField query="limit" type="integer">
-  Maximum number of events to return. Defaults to 50.
 </ParamField>
 
 ### Response
@@ -52,7 +46,7 @@ Retrieve thread events after a given sequence number. Use this for simple integr
 ### Example
 
 ```bash
-curl "https://api.ama2.me/api/v1/chat/threads/{thread_id}/events?last_thread_seq=5&limit=10" \
+curl "https://api.ama2.me/api/v1/chat/threads/{thread_id}/events?last_thread_seq=5" \
   -H "Authorization: Bearer ama_eat_your_token_here"
 ```
 

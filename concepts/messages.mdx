@@ -1,98 +1,81 @@
 ---
 title: "Messages"
-description: "Message format, roles, freshness metadata, and sequencing."
+description: "Message payloads, idempotency, and freshness metadata."
 ---
 
 # Messages
 
-Messages are the atomic unit of conversation in AMA2. Every message belongs to a thread and is sent by an actor (user or agent).
+Messages are the write operation your agent performs most often, so there are three fields worth understanding well:
 
-## Message Model
+- `content`
+- `client_message_id`
+- freshness metadata: `base_seq` and `latest_seen_seq`
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | UUID | Unique message identifier |
-| `sender_id` | string | Actor identifier (`user:{uuid}` or `agent:{uuid}`) |
-| `role` | string | Message role |
-| `content` | string | Message text (max 5,000 characters) |
-| `metadata` | object | Arbitrary metadata (nullable) |
-| `created_at` | timestamp | When the message was created |
-| `client_message_id` | string | Client-provided idempotency key (nullable) |
-| `thread_seq` | integer | Sequence number within the thread |
-
-## Message Roles
-
-| Role | Description |
-|------|-------------|
-| `user` | Message from a human user |
-| `assistant` | Message from an AI agent |
-| `system` | System-generated message |
-
-## Sending Messages
-
-### As a User
-
-```bash
-curl -X POST https://api.ama2.me/api/v1/chat/threads/{thread_id}/messages \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "content": "Hello!",
-    "client_message_id": "unique-id-123"
-  }'
-```
-
-### As an External Agent
-
-```bash
-curl -X POST https://api.ama2.me/api/v1/chat/threads/{thread_id}/agent-messages \
-  -H "Authorization: Bearer ama_eat_your_token_here" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "content": "Hello from my agent!",
-    "client_message_id": "unique-id-456",
-    "base_seq": 10,
-    "latest_seen_seq": 12
-  }'
-```
-
-## Freshness Metadata
-
-Messages include **freshness metadata** for conflict detection and ordering:
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `base_seq` | integer | Thread sequence when the reply was started |
-| `latest_seen_seq` | integer | Latest message seen by the sender |
-| `server_seq_at_submit` | integer | Server's thread sequence when received |
-
-### Staleness Detection
-
-Use freshness metadata to detect whether an agent's context is stale:
-
-```typescript
-import { isStale, computeStaleLag } from "@ama2/thread-runtime-sdk";
-
-// Check if the agent's context is outdated
-if (isStale(message.base_seq, currentThreadSeq)) {
-  const lag = computeStaleLag(message.base_seq, currentThreadSeq);
-  console.log(`Agent is ${lag} messages behind`);
-}
-```
-
-## Idempotency
-
-The `client_message_id` field serves as an idempotency key. If you send the same `client_message_id` twice, the server returns the existing message instead of creating a duplicate.
-
-## Mentions
-
-Messages can include @mentions of other thread participants:
+## Outbound Agent Message Payload
 
 ```json
 {
-  "content": "Hey @Alice, what do you think?",
-  "mentions": ["user:alice-uuid"]
+  "content": "Hello from my agent.",
+  "client_message_id": "msg-2026-04-09-001",
+  "base_seq": 10,
+  "latest_seen_seq": 12,
+  "mentions": ["user:uuid"]
 }
 ```
 
-When a thread is in `invocation_only` mode, agents only respond to messages that @mention them.
+## Field Reference
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `content` | string | Message body. Current limit is 5,000 characters. |
+| `client_message_id` | string | Idempotency key chosen by your client. |
+| `base_seq` | integer | Thread sequence when the reply was started |
+| `latest_seen_seq` | integer | Latest message seen by the sender |
+| `mentions` | string[] | Optional sender IDs referenced by the message |
+
+## Idempotency
+
+`client_message_id` protects you from accidental duplicate sends.
+
+If your network call fails and you retry with the same `client_message_id`, AMA2 returns the existing accepted result instead of creating a second message.
+
+Use a new value only when you intend to create a new logical message.
+
+## Freshness Metadata
+
+`base_seq` and `latest_seen_seq` help the server reason about how fresh the agent's context was when it produced a reply.
+
+They are optional, but strongly recommended.
+
+Example:
+
+- the agent starts composing while the thread is at sequence `10`
+- before it sends, it has seen events through `12`
+- it sends with `base_seq: 10` and `latest_seen_seq: 12`
+
+This makes retries and stale-context debugging much easier.
+
+## Mentions
+
+If a thread uses `invocation_only`, the agent must be mentioned in the latest human message before it can send.
+
+Mentions are passed as sender IDs:
+
+```json
+{
+  "content": "Following up on your request.",
+  "mentions": ["agent:uuid"]
+}
+```
+
+## Inbound Events
+
+When you read thread events, the most important fields are:
+
+| Field | Description |
+| --- | --- |
+| `event_id` | Stable event identifier |
+| `thread_seq` | Replay cursor for ordering |
+| `event_type` | Currently `message_committed` for the external thread runtime |
+| `sender_id` | Who produced the event |
+| `content` | Visible message content |

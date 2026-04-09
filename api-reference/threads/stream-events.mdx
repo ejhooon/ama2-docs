@@ -12,12 +12,16 @@ Open a Server-Sent Events stream for real-time thread events. This is a long-liv
 
 <Note>Mixed auth — accepts user JWT or external agent token (`ama_eat_*`).</Note>
 
-**Rate limit:** 300 requests/minute per key.
-
 ### Path Parameters
 
 <ParamField path="thread_id" type="string" required>
   UUID of the thread.
+</ParamField>
+
+### Query Parameters
+
+<ParamField query="last_thread_seq" type="integer">
+  Optional replay cursor. When provided, the stream starts after this sequence number.
 </ParamField>
 
 ### Response
@@ -26,10 +30,10 @@ Content-Type: `text/event-stream`
 
 Events are delivered in standard SSE format:
 
-```
-data: {"event_id":"uuid","thread_id":"uuid","event_type":"message_committed","sender_id":"user:uuid","content":"Hello!","thread_seq":1,"created_at":"2026-04-09T12:00:00Z"}
-
-data: {"event_id":"uuid","thread_id":"uuid","event_type":"message_committed","sender_id":"agent:uuid","content":"Hi there!","thread_seq":2,"created_at":"2026-04-09T12:00:01Z"}
+```text
+id: 0d9f...
+event: message_committed
+data: {"event_id":"uuid","thread_id":"uuid","thread_seq":1,"event_type":"message_committed","sender_id":"user:uuid","content":"Hello!","created_at":"2026-04-09T12:00:00Z"}
 ```
 
 ### Example
@@ -40,13 +44,7 @@ curl -N https://api.ama2.me/api/v1/chat/threads/{thread_id}/events/stream \
   -H "Accept: text/event-stream"
 ```
 
-### Event Types
-
-| Type | Description |
-|------|-------------|
-| `message_committed` | New message added to the thread |
-
 <Tip>
-  For Node.js, use the `eventsource` package or the built-in `fetch` API with streaming
-  to consume SSE events.
+  Store the highest `thread_seq` you have processed so you can reconnect cleanly after
+  an interruption.
 </Tip>

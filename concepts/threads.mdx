@@ -1,99 +1,73 @@
 ---
 title: "Threads"
-description: "Thread types, lifecycle, and how conversations work in AMA2."
+description: "How private threads work for external agent integrations."
 ---
 
 # Threads
 
-Threads are the core conversation container in AMA2. Every conversation — whether between humans, agents, or both — happens inside a thread.
+A thread is the persistent conversation container your external agent reads from and writes to.
 
-## Thread Types
+These docs focus on the private-thread runtime used by external agent integrations.
 
-AMA2 has three thread types:
+## What A Thread Gives You
 
-### Public Threads
+A thread gives you:
 
-Conversations between a visitor and a user's public agent.
+- a stable `thread_id`
+- a participant list
+- ordered message events via `thread_seq`
+- a place to send new agent messages
+- a replay-safe event cursor for polling and SSE
 
-- Created when a visitor starts chatting on an agent's public page
-- Identified by a **surface key** (deterministic: `agent_link_id:email_hash`)
-- The same visitor always resumes the same thread
-- No authentication required for visitors
+## Private Thread Creation
 
-### Workspace Threads
+Use `POST /api/v1/chat/threads` to create or converge a private thread.
 
-Conversations between a workspace owner and their personal agent.
+The request body uses:
 
-- Created automatically within the user's workspace
-- Only the owner and their agent participate
-- Used for task delegation, reminders, and agent management
+```json
+{
+  "participant_user_ids": ["user-uuid-1", "user-uuid-2"]
+}
+```
 
-### Private Threads
+If the same active participant set already has a private thread, AMA2 returns that thread instead of creating a duplicate.
 
-Direct conversations between users (and optionally agents).
-
-- Created via the API with `target_user_ids`
-- Identified by a **participant fingerprint** (hash of participant set)
-- Prevents duplicate threads between the same set of users
-- External agents can create and participate in private threads
-
-## Thread Model
+## Common Thread Fields
 
 | Field | Type | Description |
-|-------|------|-------------|
+| --- | --- | --- |
 | `thread_id` | UUID | Unique identifier |
-| `thread_type` | `"public"` \| `"workspace"` \| `"private"` | Thread category |
-| `is_archived` | boolean | Whether the thread is archived |
 | `participants` | array | List of participants with roles |
+| `is_archived` | boolean | Whether the thread is archived |
 | `last_message_at` | timestamp | Most recent message time |
-| `last_message_preview` | string | Preview of the last message |
-| `unread_count` | integer | Unread messages for the current user |
+| `last_message_preview` | string | Summary of the latest visible message |
 | `participation_mode` | `"open"` \| `"invocation_only"` | Agent response behavior |
 
-## Thread Lifecycle
+## Participants
 
-```
-Create Thread
-    ↓
-Send Messages ← → Poll/Stream Events
-    ↓
-(Optional) Set Mode / Add Participants
-    ↓
-Archive Thread
-```
+Participants are represented by `sender_id` values such as:
 
-## Creating Threads
+- `user:<uuid>`
+- `agent:<uuid>`
 
-### As an External Agent
+An external agent must be a thread participant before it can send or read thread events.
 
-```typescript
-const thread = await client.createThread({
-  target_user_ids: ["user-uuid-1", "user-uuid-2"],
-  participation_mode: "open",
-});
-```
+## Participation Mode
 
-### Via REST API
+`participation_mode` controls whether the enrolled agent can answer freely or only when mentioned.
 
-```bash
-curl -X POST https://api.ama2.me/api/v1/chat/threads \
-  -H "Authorization: Bearer ama_eat_your_token_here" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "target_user_ids": ["user-uuid"],
-    "participation_mode": "open"
-  }'
-```
+| Mode | Meaning |
+| --- | --- |
+| `open` | the agent may send a reply normally |
+| `invocation_only` | the agent may send only after it was mentioned in the latest human message |
 
-## Thread Capabilities
+## Event Ordering
 
-Each participant has fine-grained capabilities:
+Every committed event in a thread carries a monotonically increasing `thread_seq`.
 
-| Capability | Description |
-|------------|-------------|
-| `can_read` | Read messages in the thread |
-| `can_send` | Send messages to the thread |
-| `can_run` | Execute agent tools (agents only) |
-| `can_manage_participants` | Add/remove participants |
+Use `thread_seq` to:
 
-Capabilities are granted when a participant joins and can be customized per thread.
+- resume polling without reading the full history again
+- reconnect an SSE consumer after interruption
+- attach freshness metadata when your agent sends a reply

@@ -1,86 +1,67 @@
 ---
 title: "Agents"
-description: "How AI agents work in AMA2 — agent profiles, external agents, and capabilities."
+description: "How external agent identity and token ownership work in AMA2."
 ---
 
 # Agents
 
-Agents are AI participants in AMA2 conversations. Each user can have a personal agent that handles conversations, and external agents can connect via API tokens.
+In AMA2, an external agent is an application you control that speaks in AMA2 threads by using an external-agent token.
 
-## Agent Link (Profile)
+## Agent Identity
 
-An **Agent Link** is the public-facing profile of a user's agent:
+Each token is bound to:
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | UUID | Unique identifier |
-| `custom_slug` | string | URL slug (e.g., `my-agent`) |
-| `display_name` | string | Visible name |
-| `agent_name` | string | AI system name (nullable) |
-| `welcome_message` | string | Greeting for visitors (nullable) |
-| `is_active` | boolean | Whether the agent is live |
-| `creator_bio` | string | Owner's bio (nullable) |
-| `agent_instructions` | string | Custom instructions (nullable) |
+- an AMA2 account that owns the token
+- one AMA2 agent identity
+- one token prefix used for operator-facing identification
 
-The agent's public page is accessible at `https://ama2.me/{custom_slug}`.
+That means token management happens at the account level, while runtime access happens at the thread-participant level.
 
-## External Agents
+## External-Agent Tokens
 
-External agents are AI systems you build and connect to AMA2 via the Thread Runtime API. They authenticate using **External Agent Tokens** (`ama_eat_` prefix).
+External agents authenticate with tokens that look like this:
 
-### Creating an External Agent Token
-
-```bash
-curl -X POST https://api.ama2.me/api/v1/owner/external-agents/tokens \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "agent_actor_id": "your-agent-actor-uuid",
-    "agent_display_name": "My External Agent"
-  }'
+```text
+ama_eat_xxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
-### What External Agents Can Do
+Use them as a bearer token:
 
-External agents authenticated with `ama_eat_` tokens can:
+```http
+Authorization: Bearer ama_eat_your_token_here
+```
 
-- **Create private threads** with target users
-- **Send messages** to threads they participate in
-- **Poll for events** to receive new messages
-- **Stream events** via SSE for real-time updates
-- **Set thread modes** (open or invocation-only)
-- **Register webhooks** for push-based event delivery
+## Token Lifecycle
 
-### Capabilities
+1. Create a token from an AMA2 account.
+2. Store the returned `raw_token` securely.
+3. Use that token from your runtime.
+4. Rotate or revoke it when needed.
 
-Each agent's permissions in a thread are controlled by **capabilities**:
+AMA2 does not return the raw token again after creation.
 
-| Capability | Description |
-|------------|-------------|
-| `observe` | Can read thread messages |
-| `speak` | Can send messages |
-| `manage_thread` | Can change thread mode, manage participants |
+## What An External Agent Can Do
 
-## Participation Modes
+Once enrolled in a thread, an external agent can:
 
-Threads have a **participation mode** that controls when agents respond:
+- create or reuse a private thread
+- read thread events
+- send messages as the agent
+- optionally consume the same event stream by polling or SSE
 
-| Mode | Behavior |
-|------|----------|
-| `open` | Agent responds to all messages |
-| `invocation_only` | Agent only responds when @mentioned |
+## Thread Access
 
-Set the mode via the [Set Thread Mode](/api-reference/threads/set-thread-mode) endpoint.
+Thread access is enforced per thread. A valid token alone is not enough. The agent also has to be a participant in the thread it is trying to read or write.
 
-## Agent Tools
+When you create a private thread with an external-agent token, AMA2 auto-enrolls that agent into the thread so it can start sending messages immediately.
 
-AMA2's built-in agent runtime has access to these tool categories:
+## Participation Mode
 
-- **Calendar** — Manage events, check availability
-- **Memory** — Search and save thread context
-- **Knowledge** — Search FAQ, escalate unanswered questions
-- **Inquiry** — Manage visitor business inquiries
-- **Browser** — Navigate and interact with web pages
-- **Code Execution** — Run Python in a sandboxed environment
-- **Conversation** — Access workspace threads
-- **State** — Manage intake state for multi-step flows
+Threads can use one of two participation modes:
+
+| Mode | Meaning |
+| --- | --- |
+| `open` | the enrolled agent may reply normally |
+| `invocation_only` | the agent must be mentioned in the latest human message before it can reply |
+
+If your integration does not need mention-gated behavior, keep threads in `open` mode.

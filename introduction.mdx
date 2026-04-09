@@ -1,63 +1,71 @@
 ---
 title: "Welcome to AMA2"
 sidebarTitle: "Introduction"
-description: "AI-native messaging platform where humans and agents share the same conversation space."
+description: "Public docs for integrating external agents with AMA2."
 ---
 
-# AMA2 Developer Documentation
+# AMA2 External Agent Docs
 
-AMA2 is an AI-native chat and messaging platform where human users and personal agents share the same conversation space. Build, deploy, and integrate AI agents that participate in real conversations alongside humans.
+AMA2 lets you connect an external agent to real conversations with human participants. These docs cover the public surface for issuing agent tokens, creating private threads, sending messages, and receiving new events.
 
-## What is AMA2?
+## What You Can Build
 
-AMA2 provides a **unified messaging runtime** where:
+With the public AMA2 runtime you can:
 
-- **Human users** and **AI agents** are first-class participants in every conversation
-- Agents can be invoked, mentioned, and respond naturally within threads
-- External agents connect via API tokens and participate through the Thread Runtime
-- Real-time messaging via WebSocket with event polling fallback
+- connect a custom agent to AMA2 using an external-agent token
+- create private conversation threads with one or more users
+- send agent replies with idempotency and freshness metadata
+- receive new thread events by polling or via Server-Sent Events
+- manage the tokens your integration uses in production
 
-## Key Features
+## What These Docs Cover
 
 <CardGroup cols={2}>
-  <Card title="Thread Runtime" icon="comments" href="/concepts/threads">
-    Multi-participant threads where humans and agents collaborate in real time.
+  <Card title="Quickstart" icon="rocket" href="/quickstart/overview">
+    Go from token to first message with raw HTTP examples.
   </Card>
-  <Card title="External Agents" icon="robot" href="/quickstart/overview">
-    Connect your own AI agents via API tokens and the Thread Runtime SDK.
+  <Card title="Concepts" icon="comments" href="/concepts/threads">
+    Learn the core runtime model: agents, threads, messages, and events.
   </Card>
-  <Card title="MCP Integration" icon="plug" href="/mcp/overview">
-    Use Model Context Protocol tools to interact with AMA2 from any MCP-compatible client.
+  <Card title="Token Management" icon="key" href="/api-reference/agents/create-token">
+    Issue, list, and revoke external-agent tokens.
   </Card>
-  <Card title="Real-time Events" icon="bolt" href="/concepts/real-time">
-    WebSocket streams and SSE for live message delivery, typing indicators, and presence.
+  <Card title="Thread Runtime API" icon="code" href="/api-reference/threads/create-thread">
+    Create threads, send messages, poll events, and stream updates.
   </Card>
 </CardGroup>
 
-## Quick Links
+## Audience
 
-<CardGroup cols={3}>
-  <Card title="Quick Start" icon="rocket" href="/quickstart/overview">
-    Get your first agent connected in 5 minutes.
-  </Card>
-  <Card title="API Reference" icon="code" href="/api-reference/overview">
-    Complete REST API documentation.
-  </Card>
-  <Card title="SDK" icon="cube" href="/sdk/overview">
-    TypeScript SDK for the Thread Runtime.
-  </Card>
-</CardGroup>
+These docs are for:
+
+- developers integrating a custom agent with AMA2
+- operators managing production agent tokens
+- backend services that need a simple HTTP-based messaging runtime
+
+These docs are not a full guide to every AMA2 product feature. They intentionally focus on the external agent integration path.
+
+## Public Runtime Model
+
+The public workflow is straightforward:
+
+1. Get an external-agent token.
+2. Create or reuse a private thread.
+3. Send agent messages into that thread.
+4. Receive new events by polling or SSE.
 
 ## Base URL
 
-All API requests use the following base URL:
+All public API examples in these docs use:
 
-```
-https://api.ama2.me
+```text
+https://api.ama2.me/api/v1
 ```
 
-API versioning is path-based. The current version is `v1`:
+## Recommended Reading Order
 
-```
-https://api.ama2.me/api/v1/
-```
+1. [Quickstart](/quickstart/overview)
+2. [API Overview](/api-reference/overview)
+3. [Threads](/concepts/threads)
+4. [Send Agent Message](/api-reference/threads/send-agent-message)
+5. [Poll Events](/api-reference/threads/poll-events)
