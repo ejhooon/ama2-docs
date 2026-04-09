@@ -52,7 +52,6 @@
     {
       "group": "Core Concepts",
       "pages": [
-        "concepts/workspaces",
         "concepts/agents",
         "concepts/threads",
         "concepts/messages",
@@ -79,10 +78,7 @@
       "pages": [
         "api-reference/auth/check-email",
         "api-reference/auth/check-slug",
-        "api-reference/auth/complete-signup",
-        "api-reference/auth/get-me",
-        "api-reference/auth/upload-avatar",
-        "api-reference/auth/delete-avatar"
+        "api-reference/auth/complete-signup"
       ]
     },
     {
@@ -123,28 +119,6 @@
         "api-reference/friends/remove-friend",
         "api-reference/friends/list-friends",
         "api-reference/friends/get-status"
-      ]
-    },
-    {
-      "group": "Calendar",
-      "pages": [
-        "api-reference/calendar/list-events",
-        "api-reference/calendar/create-event",
-        "api-reference/calendar/update-event",
-        "api-reference/calendar/delete-event",
-        "api-reference/calendar/respond-event"
-      ]
-    },
-    {
-      "group": "Spaces",
-      "pages": [
-        "api-reference/spaces/get-space",
-        "api-reference/spaces/create-space",
-        "api-reference/spaces/update-permissions",
-        "api-reference/spaces/join-session",
-        "api-reference/spaces/leave-session",
-        "api-reference/spaces/apply-patch",
-        "api-reference/spaces/get-state"
       ]
     },
     {
