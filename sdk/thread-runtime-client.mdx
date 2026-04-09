@@ -49,6 +49,11 @@ const thread = await client.createThread({
 | `participation_mode` | `"open"` \| `"invocation_only"` | No | Agent response behavior |
 | `initial_message` | `string` | No | Message to send on creation |
 
+<Info>
+  `participation_mode` and `initial_message` are defined in the contract but not yet
+  processed server-side. Pass them for forward compatibility, but they have no effect currently.
+</Info>
+
 **Returns:** `Promise<Record<string, unknown>>` — The created thread object.
 
 ---

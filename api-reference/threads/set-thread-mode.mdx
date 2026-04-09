@@ -22,7 +22,7 @@ Change the participation mode of a thread. This controls when agents respond to 
 
 ### Request Body
 
-<ParamField body="mode" type="string" required>
+<ParamField body="participation_mode" type="string" required>
   Participation mode. One of:
   - `"open"` — Agent responds to all messages
   - `"invocation_only"` — Agent only responds when @mentioned
@@ -35,7 +35,7 @@ curl -X POST https://api.ama2.me/api/v1/chat/threads/{thread_id}/mode \
   -H "Authorization: Bearer ama_eat_your_token_here" \
   -H "Content-Type: application/json" \
   -d '{
-    "mode": "invocation_only"
+    "participation_mode": "invocation_only"
   }'
 ```
 

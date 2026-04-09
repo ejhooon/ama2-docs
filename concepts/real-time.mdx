@@ -78,7 +78,7 @@ data: {"event_id":"uuid","thread_id":"uuid","event_type":"message_committed","se
 The simplest integration method. Poll for new events after a known sequence number:
 
 ```bash
-curl "https://api.ama2.me/api/v1/chat/threads/{thread_id}/events?since=10&limit=50" \
+curl "https://api.ama2.me/api/v1/chat/threads/{thread_id}/events?last_thread_seq=10&limit=50" \
   -H "Authorization: Bearer ama_eat_your_token_here"
 ```
 

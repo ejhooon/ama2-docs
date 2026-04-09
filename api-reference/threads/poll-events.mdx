@@ -22,7 +22,7 @@ Retrieve thread events after a given sequence number. Use this for simple integr
 
 ### Query Parameters
 
-<ParamField query="since" type="integer">
+<ParamField query="last_thread_seq" type="integer">
   Return events after this sequence number. Defaults to 0 (all events).
 </ParamField>
 
@@ -52,7 +52,7 @@ Retrieve thread events after a given sequence number. Use this for simple integr
 ### Example
 
 ```bash
-curl "https://api.ama2.me/api/v1/chat/threads/{thread_id}/events?since=5&limit=10" \
+curl "https://api.ama2.me/api/v1/chat/threads/{thread_id}/events?last_thread_seq=5&limit=10" \
   -H "Authorization: Bearer ama_eat_your_token_here"
 ```
 

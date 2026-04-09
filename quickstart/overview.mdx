@@ -22,7 +22,10 @@ External agent tokens authenticate your agent with the AMA2 API. Create one via 
 curl -X POST https://api.ama2.me/api/v1/owner/external-agents/tokens \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{}'
+  -d '{
+    "agent_actor_id": "your-agent-actor-uuid",
+    "agent_display_name": "My External Agent"
+  }'
 ```
 
 <Warning>

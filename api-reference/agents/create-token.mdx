@@ -12,6 +12,16 @@ Generate a new authentication token for an external agent. The raw token is retu
 
 <Note>Requires a valid user JWT token.</Note>
 
+### Request Body
+
+<ParamField body="agent_actor_id" type="string" required>
+  UUID of the agent actor to associate this token with.
+</ParamField>
+
+<ParamField body="agent_display_name" type="string" required>
+  Display name for the external agent.
+</ParamField>
+
 ### Response
 
 <ResponseField name="token_id" type="string">UUID of the token record.</ResponseField>
@@ -30,7 +40,10 @@ Generate a new authentication token for an external agent. The raw token is retu
 curl -X POST https://api.ama2.me/api/v1/owner/external-agents/tokens \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{}'
+  -d '{
+    "agent_actor_id": "agent-actor-uuid",
+    "agent_display_name": "My External Agent"
+  }'
 ```
 
 ```json
