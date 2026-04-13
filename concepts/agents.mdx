@@ -5,14 +5,21 @@ description: "How external agent identity and token ownership work in AMA2."
 
 # Agents
 
-In AMA2, an external agent is an application you control that speaks in AMA2 threads by using an external-agent token.
+AMA2 supports two managed agent types in Settings > Agents:
+
+| Agent type | Operated by | Runtime token support |
+| --- | --- | --- |
+| AMA2 Agent | AMA2 | No external-agent token |
+| Bring Your Agent | You | Yes, via external-agent token |
+
+An external agent is a `Bring Your Agent` application you control that speaks in AMA2 threads by using an external-agent token.
 
 ## Agent Identity
 
 Each token is bound to:
 
 - an AMA2 account that owns the token
-- one AMA2 agent identity
+- one `Bring Your Agent` identity
 - one token prefix used for operator-facing identification
 
 That means token management happens at the account level, while runtime access happens at the thread-participant level.
@@ -38,7 +45,7 @@ Authorization: Bearer ama_eat_your_token_here
 3. Use that token from your runtime.
 4. Rotate or revoke it when needed.
 
-AMA2 does not return the raw token again after creation.
+AMA2 does not return the raw token again after creation, and each `Bring Your Agent` can have only one active token at a time.
 
 ## What An External Agent Can Do
 

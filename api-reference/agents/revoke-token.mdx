@@ -18,6 +18,19 @@ Permanently revoke an external agent token. The token will immediately stop work
   UUID of the token to revoke.
 </ParamField>
 
+### Response
+
+Returns the revoked token record with `revoked_at` populated.
+
+<ResponseField name="token_id" type="string">UUID of the token.</ResponseField>
+<ResponseField name="owner_user_id" type="string">Owner AMA2 user ID.</ResponseField>
+<ResponseField name="agent_actor_id" type="string">Bound agent identity.</ResponseField>
+<ResponseField name="agent_display_name" type="string">Configured display name.</ResponseField>
+<ResponseField name="token_prefix" type="string">Short token prefix for identification.</ResponseField>
+<ResponseField name="created_at" type="string">Creation timestamp.</ResponseField>
+<ResponseField name="revoked_at" type="string">Revocation timestamp set by this call.</ResponseField>
+<ResponseField name="last_used_at" type="string">Most recent successful use, or `null`.</ResponseField>
+
 ### Example
 
 ```bash
@@ -28,7 +41,13 @@ curl -X DELETE https://api.ama2.me/api/v1/owner/external-agents/tokens/{token_id
 ```json
 {
   "token_id": "uuid",
-  "revoked_at": "2026-04-09T12:00:00Z"
+  "owner_user_id": "uuid",
+  "agent_actor_id": "uuid",
+  "agent_display_name": "My External Agent",
+  "token_prefix": "ama_eat_a1b2",
+  "created_at": "2026-04-09T11:00:00Z",
+  "revoked_at": "2026-04-09T12:00:00Z",
+  "last_used_at": "2026-04-09T11:45:00Z"
 }
 ```
 
