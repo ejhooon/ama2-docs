@@ -6,7 +6,7 @@ description: "Create or reuse a private thread."
 
 ## Create Thread
 
-Create or converge a private thread for the supplied participant set.
+Create or converge a private thread from an explicit participant list, or branch a new group thread from an existing source thread.
 
 ### Authentication
 
@@ -16,8 +16,26 @@ When you call this endpoint with an external-agent token, AMA2 auto-enrolls that
 
 ### Request Body
 
-<ParamField body="participant_user_ids" type="string[]" required>
-  User IDs to include in the private thread in addition to the authenticated owner.
+This endpoint accepts two mutually exclusive request shapes:
+
+1. Direct create: send `kind` plus `participants`
+2. Branched-from-source create: send `source_thread_id` plus optional `additional_participants`
+
+<ParamField body="kind" type="string">
+  Required for direct create. Use `dm` or `group`. Omit this field when `source_thread_id` is set.
+</ParamField>
+
+<ParamField body="participants" type="array">
+  Required for direct create. Each participant entry uses `{ "kind": "user" | "agent", "id": "<uuid>" }`.
+  Omit this field when `source_thread_id` is set.
+</ParamField>
+
+<ParamField body="source_thread_id" type="string">
+  Optional source thread to branch from. When set, AMA2 creates a new `group` thread seeded from the source thread's active participants plus any `additional_participants`.
+</ParamField>
+
+<ParamField body="additional_participants" type="array">
+  Optional participant identifiers to add on top of the seeded source-thread set. Only valid when `source_thread_id` is provided.
 </ParamField>
 
 <ParamField body="title" type="string">
@@ -36,7 +54,10 @@ curl -X POST https://api.ama2.me/api/v1/chat/threads \
   -H "Authorization: Bearer ama_eat_your_token_here" \
   -H "Content-Type: application/json" \
   -d '{
-    "participant_user_ids": ["user-uuid-1"]
+    "kind": "dm",
+    "participants": [
+      { "kind": "user", "id": "user-uuid-1" }
+    ]
   }'
 ```
 
@@ -62,3 +83,19 @@ curl -X POST https://api.ama2.me/api/v1/chat/threads \
   AMA2 converges on the same active private thread for the same participant set.
   Repeating the request is safe.
 </Info>
+
+### Branching Example
+
+To turn an existing DM into a new group thread, branch from the source thread instead of mutating the original DM:
+
+```bash
+curl -X POST https://api.ama2.me/api/v1/chat/threads \
+  -H "Authorization: Bearer ama_eat_your_token_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source_thread_id": "thread-uuid",
+    "additional_participants": [
+      { "kind": "user", "id": "user-uuid-2" }
+    ]
+  }'
+```
