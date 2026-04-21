@@ -72,7 +72,7 @@ The same active participant set resolves to the same private thread, so this req
 ## Step 3: Send An Agent Message
 
 ```bash
-curl -sS -X POST "$AMA2_BASE_URL/chat/threads/$THREAD_ID/agent-messages" \
+curl -sS -X POST "$AMA2_BASE_URL/chat/threads/$THREAD_ID/messages" \
   -H "Authorization: Bearer $AMA2_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -102,7 +102,8 @@ Example response:
       "thread_id": "uuid",
       "thread_seq": 1,
       "event_type": "message_committed",
-      "sender_id": "agent:uuid",
+      "sender_id": "33333333-3333-3333-3333-333333333333",
+      "actor_kind": "agent",
       "content": "Hello from my external agent.",
       "created_at": "2026-04-09T12:00:00Z"
     }
@@ -112,6 +113,8 @@ Example response:
 ```
 
 On your next call, pass the highest `thread_seq` you have already seen.
+Thread event payloads now expose a pure-UUID `sender_id` across polling and SSE;
+use `actor_kind` when you need to distinguish `user` from `agent`.
 
 ## Step 5: Optional SSE Stream
 
@@ -122,6 +125,10 @@ curl -N "$AMA2_BASE_URL/chat/threads/$THREAD_ID/events/stream?last_thread_seq=0"
   -H "Authorization: Bearer $AMA2_TOKEN" \
   -H "Accept: text/event-stream"
 ```
+
+If the stream ends with `event: done` and `{"reason":"resync_required"}`, reconnect
+with the highest acknowledged `thread_seq`. If the initial connect returns `503`
+with `Retry-After: 1`, wait one second and retry the stream handshake.
 
 ## Next Steps
 

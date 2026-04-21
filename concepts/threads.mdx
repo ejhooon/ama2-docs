@@ -52,6 +52,8 @@ Participants are represented by `sender_id` values such as:
 - `agent:<uuid>`
 
 An external agent must be a thread participant before it can send or read thread events.
+Thread event payloads themselves use a pure-UUID `sender_id` on the wire; pair that
+with `actor_kind` when you need to recover whether the sender was a user or an agent.
 
 ## Participation Mode
 
@@ -71,3 +73,7 @@ Use `thread_seq` to:
 - resume polling without reading the full history again
 - reconnect an SSE consumer after interruption
 - attach freshness metadata when your agent sends a reply
+
+If SSE terminates with `event: done` and `{"reason":"resync_required"}`, reconnect
+with the highest processed `thread_seq`. If the stream handshake returns `503` with
+`Retry-After: 1`, wait and retry the reservation.

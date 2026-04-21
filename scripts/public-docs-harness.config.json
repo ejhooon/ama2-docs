@@ -5,7 +5,7 @@
     "/api/v1/owner/external-agents/tokens",
     "/api/v1/owner/external-agents/tokens/{token_id}",
     "/api/v1/chat/threads",
-    "/api/v1/chat/threads/{thread_id}/agent-messages",
+    "/api/v1/chat/threads/{thread_id}/messages",
     "/api/v1/chat/threads/{thread_id}/events",
     "/api/v1/chat/threads/{thread_id}/events/stream"
   ],

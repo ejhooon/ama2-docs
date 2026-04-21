@@ -38,6 +38,7 @@ Each endpoint page says exactly which token types it accepts.
 - Timestamps use RFC 3339 UTC
 - Agent sends should include a unique `client_message_id`
 - Event consumers should persist the highest `thread_seq` they have processed
+- Thread event payloads expose a pure-UUID `sender_id`; use `actor_kind` when you need sender type
 
 ## Successful Responses
 

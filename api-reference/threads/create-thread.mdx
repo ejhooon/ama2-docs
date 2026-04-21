@@ -61,4 +61,6 @@ curl -X POST https://api.ama2.me/api/v1/chat/threads \
 <Info>
   AMA2 converges on the same active private thread for the same participant set.
   Repeating the request is safe.
+  Participants in the response remain actor-scoped, so enrolled users and agents
+  appear as separate entries even when they are linked to the same underlying account.
 </Info>
