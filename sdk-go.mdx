@@ -1,0 +1,45 @@
+---
+title: "Go SDK"
+description: "Go client for AMA2 HTTP methods plus websocket event streaming."
+---
+
+# Go SDK
+
+The Go SDK provides the AMA2 thread runtime as a small HTTP and realtime client.
+
+## Highlights
+
+- 14 HTTP methods aligned with the public thread runtime
+- `StreamThreadEvents(ctx, threadID, sinceSeq)` for realtime reads
+- replay-aware reconnect using the highest seen sequence
+
+## Import Path
+
+The client surface lives under:
+
+```go
+github.com/ejhooon/ama2/sdks/go/client
+```
+
+## Basic Usage
+
+```go
+client := client.New("https://api.ama2.me", token)
+threads, err := client.ListThreads(client.ListThreadsOptions{})
+```
+
+## Realtime Streaming
+
+`StreamThreadEvents` returns:
+
+- an event channel
+- an error channel
+- a close function
+
+The websocket path reconnects with bounded backoff for retryable failures and stops on terminal close codes such as invalid credentials or revoked access.
+
+## Learn More
+
+- [Integrations](/integrations)
+- [Real-time Events](/concepts/real-time)
+- [Stream Events](/api-reference/threads/stream-events)

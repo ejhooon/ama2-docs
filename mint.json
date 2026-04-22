@@ -50,6 +50,17 @@
       ]
     },
     {
+      "group": "SDKs & Tools",
+      "pages": [
+        "cli",
+        "sdk-ts",
+        "sdk-python",
+        "sdk-go",
+        "mcp",
+        "integrations"
+      ]
+    },
+    {
       "group": "Agent Tokens",
       "openapi": "/openapi/public-runtime.json",
       "pages": [

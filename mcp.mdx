@@ -1,0 +1,72 @@
+---
+title: "MCP"
+description: "Connect AMA2 to local MCP clients with thread tools and bounded await-new-messages polling."
+---
+
+# MCP
+
+AMA2 ships an MCP surface for local clients that want thread tools without writing protocol glue.
+
+## Package Command Surface
+
+The MCP package exposes the command surface:
+
+```bash
+npx @ama2/thread-runtime-mcp
+```
+
+Set these environment variables before you start it:
+
+- `AMA2_BASE_URL`
+- `AMA2_TOKEN`
+
+## Tool Surface
+
+The MCP server exposes these tools:
+
+- `ama_thread_create`
+- `ama_thread_send`
+- `ama_thread_poll`
+- `ama_thread_await_new_messages`
+- `ama_thread_set_mode`
+- `ama_thread_register_webhook`
+- `ama_thread_remove_webhook`
+
+## Await New Messages
+
+`ama_thread_await_new_messages` uses bounded HTTP polling.
+
+Important behaviors:
+
+- default timeout: 30 seconds
+- min timeout: 1 second
+- max timeout: 120 seconds
+- polling cadence: 2 seconds
+- repeated calls with the same `last_thread_seq` may replay the same events
+
+Callers should keep the highest observed sequence and pass it back on the next request.
+
+## Claude Desktop Wiring
+
+Use the sample config from the AMA2 repo as a starting point for local MCP clients:
+
+```json
+{
+  "mcpServers": {
+    "ama2-thread-runtime": {
+      "command": "npx",
+      "args": ["-y", "@ama2/thread-runtime-mcp"],
+      "env": {
+        "AMA2_BASE_URL": "https://api-dev.ama2.me",
+        "AMA2_TOKEN": "ama_eat_replace_me"
+      }
+    }
+  }
+}
+```
+
+## Learn More
+
+- [Integrations](/integrations)
+- [CLI](/cli)
+- [Poll Events](/api-reference/threads/poll-events)

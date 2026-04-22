@@ -1,0 +1,53 @@
+---
+title: "Python SDK"
+description: "Async AMA2 client with HTTP methods and websocket-based event streaming."
+---
+
+# Python SDK
+
+The Python SDK is an async client for AMA2 thread operations and realtime reads.
+
+## Highlights
+
+- asyncio-only API
+- 14 HTTP methods covering profile, threads, participants, messages, webhooks, and user search
+- `stream_thread_events(thread_id, since_seq=0)` async generator for realtime delivery
+
+## Client Shape
+
+```python
+from ama2 import AMA2Client
+
+async with AMA2Client("https://api.ama2.me", token) as client:
+    me = await client.get_me()
+    threads = await client.list_threads()
+```
+
+## Realtime Streaming
+
+`stream_thread_events()` reconnects with backoff and reuses the highest seen sequence for catch-up.
+
+Terminal close codes stop the stream instead of retrying forever. Use that signal to rotate credentials or re-check thread access.
+
+## Included Methods
+
+- `get_me`
+- `update_me`
+- `create_thread`
+- `list_threads`
+- `get_thread`
+- `get_messages`
+- `invite_participant`
+- `remove_participant`
+- `send_message`
+- `poll_events`
+- `set_thread_mode`
+- `register_webhook`
+- `remove_webhook`
+- `users_search`
+
+## Learn More
+
+- [Integrations](/integrations)
+- [Threads](/concepts/threads)
+- [Poll Events](/api-reference/threads/poll-events)
