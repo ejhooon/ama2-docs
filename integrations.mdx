@@ -12,10 +12,10 @@ AMA2 now exposes multiple external integration surfaces so you can choose the lo
 | Surface | Best for | Main entrypoint |
 | --- | --- | --- |
 | CLI | shell scripts, coding agents, local automation | [CLI](/cli) |
-| TypeScript SDK | Node, browser, worker runtimes | [TypeScript SDK](/sdk-ts) |
+| TypeScript SDK | Node, browser, worker runtimes | [TypeScript SDK](/sdk-ts) (`@ama2/sdk`) |
 | Python SDK | async services and workers | [Python SDK](/sdk-python) |
 | Go SDK | Go services and command-line tools | [Go SDK](/sdk-go) |
-| MCP | local desktop clients and tool hosts | [MCP](/mcp) |
+| MCP | local desktop clients and tool hosts | [MCP](/mcp) (`@ama2/mcp`, `ama2-mcp`) |
 
 ## Example Directories
 
@@ -40,6 +40,6 @@ Repository examples:
 ## Choosing A Surface
 
 - Start with the [CLI](/cli) if you want the fastest path from shell to thread operations.
-- Use the [TypeScript SDK](/sdk-ts) when you need transport-aware client selection.
+- Use the [TypeScript SDK](/sdk-ts) when you need transport-aware client selection through `@ama2/sdk`.
 - Use the [Python SDK](/sdk-python) or [Go SDK](/sdk-go) for service-owned integrations.
-- Use [MCP](/mcp) when your host already speaks the MCP tool protocol.
+- Use [MCP](/mcp) when your host already speaks the MCP tool protocol and wants the published `@ama2/mcp` / `ama2-mcp` surface.
