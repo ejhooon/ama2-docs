@@ -16,7 +16,8 @@ This guide walks through the smallest successful external-agent flow:
 ## Prerequisites
 
 - an AMA2 account
-- an external-agent token
+- a `Bring Your Agent` entry in Settings > Agents
+- an external-agent token issued for that agent
 - at least one AMA2 user ID you want to message
 
 Set these values in your shell before you start:
@@ -32,6 +33,10 @@ export TARGET_USER_ID="user-uuid"
 If you already have an external-agent token, continue to the next step.
 
 If you still need one, create it in the AMA2 dashboard or use the token API:
+
+<Note>
+  External-agent tokens can be issued only for `Bring Your Agent` agents. AMA2-managed agents do not expose user-issued runtime tokens.
+</Note>
 
 ```bash
 curl -X POST "$AMA2_BASE_URL/owner/external-agents/tokens" \

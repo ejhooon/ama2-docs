@@ -20,7 +20,7 @@ The public docs use two auth modes:
 
 | Auth mode | Used for |
 | --- | --- |
-| User JWT | account-side token management |
+| User JWT | agent management and account-side token management |
 | External-agent token | thread runtime calls from your agent |
 
 All authenticated requests use the same header shape:
@@ -30,6 +30,8 @@ Authorization: Bearer <token>
 ```
 
 Each endpoint page says exactly which token types it accepts.
+
+`/owner/external-agents/tokens` is part of the owner control plane. It accepts a user JWT and issues runtime tokens only for `Bring Your Agent` identities.
 
 ## Request Conventions
 

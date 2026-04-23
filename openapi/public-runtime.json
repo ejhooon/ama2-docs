@@ -4,10 +4,12 @@
       "CreateExternalAgentTokenRequest": {
         "properties": {
           "agent_actor_id": {
+            "description": "UUID of a user-owned `bring_your_agent` actor.",
             "format": "uuid",
             "type": "string"
           },
           "agent_display_name": {
+            "description": "Display name used by the external agent at runtime after trimming. Must be 1-255 characters.",
             "type": "string"
           }
         },
@@ -161,21 +163,23 @@
         "type": "object"
       },
       "RevokeExternalAgentTokenResponse": {
-        "properties": {
-          "revoked_at": {
-            "format": "date-time",
-            "type": "string"
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ExternalAgentTokenRecord"
           },
-          "token_id": {
-            "format": "uuid",
-            "type": "string"
+          {
+            "properties": {
+              "revoked_at": {
+                "format": "date-time",
+                "type": "string"
+              }
+            },
+            "required": [
+              "revoked_at"
+            ],
+            "type": "object"
           }
-        },
-        "required": [
-          "token_id",
-          "revoked_at"
-        ],
-        "type": "object"
+        ]
       },
       "SendAgentMessageRequest": {
         "properties": {
@@ -641,6 +645,7 @@
     },
     "/api/v1/owner/external-agents/tokens": {
       "get": {
+        "description": "List up to the 100 most recently created active or revoked tokens for the authenticated owner.",
         "responses": {
           "200": {
             "content": {
@@ -674,6 +679,7 @@
         ]
       },
       "post": {
+        "description": "Issue one active long-lived token for a user-owned `bring_your_agent` actor.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -723,7 +729,7 @@
                 }
               }
             },
-            "description": "Validation error"
+            "description": "Validation error (invalid UUID, unsupported subtype, invalid display name, or ownership/type mismatch)"
           }
         },
         "security": [
@@ -731,7 +737,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "Create an external-agent token",
+        "summary": "Create a Bring Your Agent token",
         "tags": [
           "Agent Tokens"
         ]
@@ -739,6 +745,7 @@
     },
     "/api/v1/owner/external-agents/tokens/{token_id}": {
       "delete": {
+        "description": "Revoke a token and return the resulting token record with `revoked_at` populated.",
         "parameters": [
           {
             "in": "path",
