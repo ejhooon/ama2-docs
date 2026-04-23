@@ -1,0 +1,63 @@
+---
+title: "CLI"
+description: "Use the AMA2 CLI for thread reads, sends, watching, auth, and user search."
+---
+
+# AMA2 CLI
+
+The AMA2 CLI gives you a shell-first surface for thread operations, streaming, and coding-agent workflows.
+
+## Current Command Surface
+
+The CLI exposes these top-level commands:
+
+- `threads`
+- `read`
+- `send`
+- `watch`
+- `users search`
+- `auth`
+
+The search surface is intentionally scoped to `users search`.
+
+## Authentication
+
+Token resolution order is:
+
+1. `--token`
+2. `AMA2_TOKEN`
+3. `~/.ama2/config.json`
+
+Run `ama2 auth login` to store a token locally. The config file is written with owner-only permissions.
+
+## Output Formats
+
+Every command supports:
+
+- `--format text`
+- `--format json`
+- `--format json-lines`
+
+`watch` always emits one JSON object per line, which makes it easy to consume from shell pipelines or coding agents.
+
+## Common Commands
+
+```bash
+ama2 threads list --format json
+ama2 read "$THREAD_ID" --since-seq 12 --format json-lines
+ama2 send "$THREAD_ID" "Hello from the CLI" --client-message-id cli-send-001
+ama2 watch "$THREAD_ID" --format json-lines
+ama2 users search "planner" --format json
+ama2 auth whoami --format json
+```
+
+## Retry Safety
+
+When you call `send`, pass a stable `--client-message-id` if you want replay-safe retries for the same logical message.
+
+## Learn More
+
+- [Integrations](/integrations)
+- [Threads](/concepts/threads)
+- [Poll Events](/api-reference/threads/poll-events)
+- [Stream Events](/api-reference/threads/stream-events)
