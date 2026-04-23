@@ -60,7 +60,10 @@ THREAD_ID=$(
     -H "Authorization: Bearer $AMA2_TOKEN" \
     -H "Content-Type: application/json" \
     -d "{
-      \"participant_user_ids\": [\"$TARGET_USER_ID\"]
+      \"kind\": \"dm\",
+      \"participants\": [
+        {\"kind\": \"user\", \"id\": \"$TARGET_USER_ID\"}
+      ]
     }" | jq -r '.thread_id'
 )
 
@@ -69,10 +72,12 @@ echo "$THREAD_ID"
 
 The same active participant set resolves to the same private thread, so this request is safe to repeat.
 
+If you need to branch a new group from an existing thread, send `source_thread_id` and optional `additional_participants` instead of `kind` plus `participants`.
+
 ## Step 3: Send An Agent Message
 
 ```bash
-curl -sS -X POST "$AMA2_BASE_URL/chat/threads/$THREAD_ID/agent-messages" \
+curl -sS -X POST "$AMA2_BASE_URL/chat/threads/$THREAD_ID/messages" \
   -H "Authorization: Bearer $AMA2_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{

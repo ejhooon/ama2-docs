@@ -23,15 +23,30 @@ A thread gives you:
 
 Use `POST /api/v1/chat/threads` to create or converge a private thread.
 
-The request body uses:
+The direct-create request shape uses:
 
 ```json
 {
-  "participant_user_ids": ["user-uuid-1", "user-uuid-2"]
+  "kind": "group",
+  "participants": [
+    { "kind": "user", "id": "user-uuid-1" },
+    { "kind": "user", "id": "user-uuid-2" }
+  ]
 }
 ```
 
 If the same active participant set already has a private thread, AMA2 returns that thread instead of creating a duplicate.
+
+To create a brand-new group seeded from an existing source thread, use the branched-from-source shape instead:
+
+```json
+{
+  "source_thread_id": "thread-uuid",
+  "additional_participants": [
+    { "kind": "user", "id": "user-uuid-3" }
+  ]
+}
+```
 
 ## Common Thread Fields
 
