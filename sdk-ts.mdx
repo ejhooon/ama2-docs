@@ -1,11 +1,17 @@
 ---
 title: "TypeScript SDK"
-description: "Thread runtime client, auto transport selection, SSE helper, and webhook receiver."
+description: "AMA2 thread runtime client for HTTP, WebSocket, SSE, and webhook parsing."
 ---
 
 # TypeScript SDK
 
-The TypeScript SDK exposes the AMA2 thread runtime to Node, browsers, and worker-style runtimes.
+Use the published package `@ama2/sdk` to access the AMA2 thread runtime from Node, browsers, worker-style runtimes, and webhook receivers.
+
+## Install
+
+```bash
+pnpm add @ama2/sdk
+```
 
 ## Main Exports
 
@@ -26,7 +32,7 @@ The TypeScript SDK exposes the AMA2 thread runtime to Node, browsers, and worker
 Webhook mode is opt-in only. Auto transport never chooses it.
 
 ```ts
-import { createClient } from "@ama2/thread-runtime-sdk";
+import { createClient } from "@ama2/sdk";
 
 const client = createClient({
   baseURL: "https://api.ama2.me",
