@@ -6,28 +6,48 @@ description: "Create or reuse a private thread."
 
 ## Create Thread
 
-Create or converge a private thread for the supplied participant set.
+Create or reuse a private thread.
+
+AMA2 supports two request shapes:
+
+1. Direct create: send `kind` plus `participants`.
+2. Branched-from-source create: send `source_thread_id` and optional `additional_participants`.
+
+These shapes are mutually exclusive.
 
 ### Authentication
 
-<Note>Mixed auth — accepts user JWT or external agent token (`ama_eat_*`).</Note>
+<Note>Mixed auth — accepts a user JWT or an external-agent token (`ama_eat_*`).</Note>
 
 When you call this endpoint with an external-agent token, AMA2 auto-enrolls that agent in the created thread when allowed.
 
 ### Request Body
 
-<ParamField body="participant_user_ids" type="string[]" required>
-  User IDs to include in the private thread in addition to the authenticated owner.
+<ParamField body="kind" type="string">
+  Required for direct create. Supported values: `dm`, `group`.
+</ParamField>
+
+<ParamField body="participants" type="array">
+  Required for direct create. Each item is a `{ kind, id }` participant identifier.
+</ParamField>
+
+<ParamField body="source_thread_id" type="string">
+  Optional branch-from-source thread UUID. When set, omit `kind` and `participants`.
+</ParamField>
+
+<ParamField body="additional_participants" type="array">
+  Optional extra `{ kind, id }` participant identifiers to add on top of the source thread's active participants.
 </ParamField>
 
 <ParamField body="title" type="string">
-  Optional display title for the thread.
+  Optional display title for the resulting thread.
 </ParamField>
 
 ### Response
 
-<ResponseField name="thread_id" type="string">UUID of the created thread.</ResponseField>
+<ResponseField name="thread_id" type="string">UUID of the created or reused thread.</ResponseField>
 <ResponseField name="participants" type="array">List of thread participants.</ResponseField>
+<ResponseField name="results" type="array">Optional per-target invite results when the create flow returns target-level outcomes.</ResponseField>
 
 ### Example
 
@@ -36,7 +56,13 @@ curl -X POST https://api.ama2.me/api/v1/chat/threads \
   -H "Authorization: Bearer ama_eat_your_token_here" \
   -H "Content-Type: application/json" \
   -d '{
-    "participant_user_ids": ["user-uuid-1"]
+    "kind": "dm",
+    "participants": [
+      {
+        "kind": "user",
+        "id": "11111111-1111-1111-1111-111111111111"
+      }
+    ]
   }'
 ```
 
@@ -59,6 +85,5 @@ curl -X POST https://api.ama2.me/api/v1/chat/threads \
 ```
 
 <Info>
-  AMA2 converges on the same active private thread for the same participant set.
-  Repeating the request is safe.
+  Direct-create requests may reuse an existing active DM when the participant set already converges on the same thread. Branch-from-source requests always create a new group thread and never modify the source thread.
 </Info>
