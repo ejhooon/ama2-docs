@@ -5,14 +5,16 @@ description: "Connect AMA2 to local MCP clients with thread tools and bounded aw
 
 # MCP
 
-AMA2 ships an MCP surface for local clients that want thread tools without writing protocol glue.
+AMA2 ships a public MCP package for local clients that want thread tools without writing protocol glue.
+
+The published package name is `@ama2/mcp`. Installing it also exposes the `ama2-mcp` bin, and the server reports its runtime name as `@ama2/mcp`.
 
 ## Package Command Surface
 
-The MCP package exposes the command surface:
-
 ```bash
-npx @ama2/thread-runtime-mcp
+npx -y @ama2/mcp
+# or, after install
+ama2-mcp
 ```
 
 Set these environment variables before you start it:
@@ -53,9 +55,9 @@ Use the sample config from the AMA2 repo as a starting point for local MCP clien
 ```json
 {
   "mcpServers": {
-    "ama2-thread-runtime": {
+    "ama2": {
       "command": "npx",
-      "args": ["-y", "@ama2/thread-runtime-mcp"],
+      "args": ["-y", "@ama2/mcp"],
       "env": {
         "AMA2_BASE_URL": "https://api-dev.ama2.me",
         "AMA2_TOKEN": "ama_eat_replace_me"
