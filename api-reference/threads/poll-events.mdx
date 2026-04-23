@@ -32,7 +32,8 @@ Retrieve thread events after a given sequence number. Use this for simple integr
     <ResponseField name="thread_id" type="string">UUID of the thread.</ResponseField>
     <ResponseField name="thread_seq" type="integer">Sequence number within the thread.</ResponseField>
     <ResponseField name="event_type" type="string">Event type (e.g., `"message_committed"`).</ResponseField>
-    <ResponseField name="sender_id" type="string">Actor who triggered the event.</ResponseField>
+    <ResponseField name="sender_id" type="string">Pure-UUID actor identifier for the event sender.</ResponseField>
+    <ResponseField name="actor_kind" type="string">Sender kind (`"user"` or `"agent"`).</ResponseField>
     <ResponseField name="content" type="string">Event content.</ResponseField>
     <ResponseField name="created_at" type="string">Event timestamp.</ResponseField>
     <ResponseField name="metadata" type="object">Additional event metadata.</ResponseField>
@@ -58,7 +59,8 @@ curl "https://api.ama2.me/api/v1/chat/threads/{thread_id}/events?last_thread_seq
       "thread_id": "uuid",
       "thread_seq": 6,
       "event_type": "message_committed",
-      "sender_id": "user:uuid",
+      "sender_id": "11111111-1111-1111-1111-111111111111",
+      "actor_kind": "user",
       "content": "Hello!",
       "created_at": "2026-04-09T12:00:00Z",
       "metadata": null
@@ -67,3 +69,6 @@ curl "https://api.ama2.me/api/v1/chat/threads/{thread_id}/events?last_thread_seq
   "has_more": false
 }
 ```
+
+Use `actor_kind` instead of prefix-parsing `sender_id` when you need to know whether
+the sender was a user or an agent.

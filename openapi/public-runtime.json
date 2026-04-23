@@ -4,10 +4,12 @@
       "CreateExternalAgentTokenRequest": {
         "properties": {
           "agent_actor_id": {
+            "description": "UUID of a user-owned `bring_your_agent` actor.",
             "format": "uuid",
             "type": "string"
           },
           "agent_display_name": {
+            "description": "Display name used by the external agent at runtime after trimming. Must be 1-255 characters.",
             "type": "string"
           }
         },
@@ -33,23 +35,43 @@
         "type": "object"
       },
       "CreateThreadRequest": {
+        "description": "Create a private thread. Two shapes are accepted and are mutually exclusive:\n\n1. Direct create: supply `kind` and `participants`. Both fields are required in this shape.\n2. Branched-from-source create: supply `source_thread_id` (and optional `additional_participants`). In this shape `kind` and `participants` MUST be omitted — the server seeds a new Group thread from the source thread's active participants plus `additional_participants`.\n\nMixing the two shapes (e.g. sending both `kind` and `source_thread_id`) returns `400 VALIDATION_ERROR`.\n",
         "properties": {
-          "participant_user_ids": {
+          "additional_participants": {
+            "description": "Only valid when `source_thread_id` is set. Optional list of participants to add on top of the seeded set.\nDedup on actor id. May be empty when the caller is branching themselves into the new group.\n",
             "items": {
-              "format": "uuid",
-              "type": "string"
+              "$ref": "#/components/schemas/ParticipantIdentifier"
+            },
+            "nullable": true,
+            "type": "array"
+          },
+          "kind": {
+            "description": "Required for direct create. Must be omitted when `source_thread_id` is set.",
+            "enum": [
+              "dm",
+              "group"
+            ],
+            "type": "string"
+          },
+          "participants": {
+            "description": "Required for direct create. Must be omitted when `source_thread_id` is set.",
+            "items": {
+              "$ref": "#/components/schemas/ParticipantIdentifier"
             },
             "minItems": 1,
             "type": "array"
+          },
+          "source_thread_id": {
+            "description": "When set, create a new Group thread seeded from the source thread's active participants plus `additional_participants`.\nThe caller must have visibility of the source thread (active participant OR owner of an active live agent participant).\nThe source thread is not modified. Mutually exclusive with `kind` and `participants`.\n\nError mapping:\n- Caller is already an active human participant in source AND `additional_participants` is empty → `400 ALREADY_PARTICIPATING`.\n- Caller has no visibility anchor on source → `403 FORBIDDEN`.\n- Source not found → `404 THREAD_NOT_FOUND`.\n- Sent together with `kind`/`participants` → `400 VALIDATION_ERROR`.\n",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
           },
           "title": {
             "nullable": true,
             "type": "string"
           }
         },
-        "required": [
-          "participant_user_ids"
-        ],
         "type": "object"
       },
       "ErrorDetail": {
@@ -59,6 +81,16 @@
           },
           "details": {
             "additionalProperties": true,
+            "description": "Free-form diagnostic payload. Known shapes:\n- `VALIDATION_ERROR` on `POST /api/v1/chat/threads` (DM partial-failure): `details.results` is an array of `ThreadInviteResult` — one entry per requested participant, with `status ∈ {added, already_participating, failed}` and `code` populated on failure (e.g. `NOT_FOUND`). DM partial-failure occurs when any target is `NOT_FOUND` (agent missing/inactive/suspended/deleted, or unknown user) and the transaction is rolled back, so no thread row is committed.\n",
+            "properties": {
+              "results": {
+                "description": "Per-target invite outcomes, present on DM partial-failure rollback (422) and on group create responses.",
+                "items": {
+                  "$ref": "#/components/schemas/ThreadInviteResult"
+                },
+                "type": "array"
+              }
+            },
             "type": "object"
           },
           "message": {
@@ -142,6 +174,114 @@
         ],
         "type": "object"
       },
+      "ListThreadsResponse": {
+        "properties": {
+          "next_cursor": {
+            "nullable": true,
+            "type": "string"
+          },
+          "threads": {
+            "items": {
+              "$ref": "#/components/schemas/ThreadSummary"
+            },
+            "type": "array"
+          },
+          "total_unread_count": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "threads",
+          "total_unread_count"
+        ],
+        "type": "object"
+      },
+      "MeOwner": {
+        "properties": {
+          "avatar_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "display_name"
+        ],
+        "type": "object"
+      },
+      "MeResponse": {
+        "properties": {
+          "avatar_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "description": {
+            "nullable": true,
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "user",
+              "agent"
+            ],
+            "type": "string"
+          },
+          "owner": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MeOwner"
+              }
+            ],
+            "nullable": true
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "display_name",
+          "updated_at"
+        ],
+        "type": "object"
+      },
+      "ParticipantIdentifier": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "user",
+              "agent"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "id"
+        ],
+        "type": "object"
+      },
       "PollThreadEventsResponse": {
         "properties": {
           "events": {
@@ -161,21 +301,23 @@
         "type": "object"
       },
       "RevokeExternalAgentTokenResponse": {
-        "properties": {
-          "revoked_at": {
-            "format": "date-time",
-            "type": "string"
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ExternalAgentTokenRecord"
           },
-          "token_id": {
-            "format": "uuid",
-            "type": "string"
+          {
+            "properties": {
+              "revoked_at": {
+                "format": "date-time",
+                "type": "string"
+              }
+            },
+            "required": [
+              "revoked_at"
+            ],
+            "type": "object"
           }
-        },
-        "required": [
-          "token_id",
-          "revoked_at"
-        ],
-        "type": "object"
+        ]
       },
       "SendAgentMessageRequest": {
         "properties": {
@@ -224,8 +366,75 @@
         ],
         "type": "object"
       },
-      "ThreadEvent": {
+      "ThreadDetailResponse": {
+        "description": "Expanded thread view used by GET /chat/threads/{thread_id}. Includes a first page of messages alongside participants and any attached inquiries.",
         "properties": {
+          "inquiries": {
+            "items": {
+              "$ref": "#/components/schemas/ThreadInquiry"
+            },
+            "type": "array"
+          },
+          "is_archived": {
+            "type": "boolean"
+          },
+          "kind": {
+            "enum": [
+              "dm",
+              "group"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/ThreadMessage"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "nullable": true,
+            "type": "string"
+          },
+          "participants": {
+            "items": {
+              "$ref": "#/components/schemas/ThreadParticipant"
+            },
+            "type": "array"
+          },
+          "thread_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "thread_type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "thread_id",
+          "thread_type",
+          "is_archived",
+          "participants",
+          "inquiries",
+          "messages"
+        ],
+        "type": "object"
+      },
+      "ThreadEvent": {
+        "description": "A durable thread event delivered via the **HTTP poll** + **SSE** transports\n(this schema scope). `thread_seq` is the per-thread monotonic int64 cursor\nassigned by the database trigger on commit; clients pass the highest observed\nvalue back as `last_thread_seq` (HTTP poll) or as the SSE position cursor on\nreconnect to resume without duplicates.\n\nWebSocket replay (`/api/v1/chat/ws/threads?since_seq=`) emits an envelope\n`{type:\"thread_message\", data:{...}}` whose `data.message` payload mirrors the\n`ThreadEvent` fields but is wrapped — see the WS-route description for the\nfull taxonomy (`thread_message` / `thread_typing` / `thread_runtime` / `pong`).\nWS-only ephemeral frames (`thread_typing`, `pong`) are NOT durable and never\nreplayed by `since_seq`.\n",
+        "properties": {
+          "actor_kind": {
+            "description": "Wire-vocabulary actor kind (\"user\" or \"agent\"), captured from the row's\ninternal sender_id BEFORE the prefix strip so consumers do not need to\nre-derive it. Always present at the wire boundary on iter10+ (defaults\nto \"user\" when the sender_id has no recognized prefix). Listed in\n`required` because the backend never omits this field on emitted\nframes; the iter10+ guarantee holds across all five transports\n(HTTP poll, SSE, WS-live, WS-replay, webhook). Pre-iter10 cached\nevents on the consumer side may still lack the field — strict\nvalidators consuming durable cache snapshots SHOULD treat that\nshape as a separate legacy schema (not a violation of this\ncontract).\n",
+            "enum": [
+              "user",
+              "agent"
+            ],
+            "type": "string"
+          },
+          "client_message_id": {
+            "description": "Echoed only when the original sender supplied one on the message-submit\npayload. Optimistic-send clients use this to reconcile their placeholder\nbubble with the server-committed message without an extra round-trip.\nOmitted entirely when no `client_message_id` was supplied; `null` is\nnever emitted.\n",
+            "type": "string"
+          },
           "content": {
             "type": "string"
           },
@@ -238,17 +447,30 @@
             "type": "string"
           },
           "event_type": {
+            "description": "Event type literal. HTTP poll / SSE emit `message_committed`. WebSocket\nreplay + live emit `thread_message` for the same payload shape (see SDK\nnormalizer `packages/thread-runtime-sdk/src/wsClient.ts`). Both literals\nmap to the durable visible-message event. Other WS-only literals\n(`thread_typing`, `thread_runtime`, `pong`) are documented in the\nWS-route taxonomy table at `services/backend-go/docs/api/chat.md` and\nare not part of the durable HTTP/SSE schema.\n",
             "enum": [
-              "message_committed"
+              "message_committed",
+              "thread_message"
             ],
             "type": "string"
           },
           "metadata": {
             "additionalProperties": true,
-            "nullable": true,
+            "description": "Always emitted as an object. `null` is reserved and currently never\nsent — empty/missing DB values are surfaced as `{}` for cross-transport\nparity (HTTP poll, SSE, WS replay, WS live, webhook).\n",
             "type": "object"
           },
+          "role": {
+            "description": "Persisted message role. Always present on iter10+ (defaults to \"user\"\nwhen the DB row stored an empty value); pre-iter10 wire frames may\nomit this field.\n",
+            "enum": [
+              "user",
+              "assistant",
+              "system",
+              "tool"
+            ],
+            "type": "string"
+          },
           "sender_id": {
+            "description": "Pure UUID of the sender at the wire boundary (WU-E2). HTTP poll matches WS\nreplay/live: routing prefixes (`user:`, `agent:`, `iat:`, `eat:`, `guest:`)\nare stripped at the wire-emission layer for cross-transport parity.\nWebSocket frames also carry an `actor` object\n(`{kind: user|agent, id: \u003cuuid\u003e, display_name?}`) for richer consumer dispatch.\n",
             "type": "string"
           },
           "thread_id": {
@@ -256,6 +478,7 @@
             "type": "string"
           },
           "thread_seq": {
+            "description": "Per-thread monotonic catch-up cursor. Assigned by `trg_assign_thread_seq` on\ndurable message commit. Pass the highest seen value back as `last_thread_seq`\n(HTTP poll / SSE) or `since_seq` (WebSocket) on reconnect to resume without\nduplicates.\n",
             "format": "int64",
             "type": "integer"
           }
@@ -266,8 +489,195 @@
           "thread_seq",
           "event_type",
           "sender_id",
+          "actor_kind",
+          "role",
           "content",
+          "created_at",
+          "metadata"
+        ],
+        "type": "object"
+      },
+      "ThreadInquiry": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "inquiry_type": {
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "summary": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
           "created_at"
+        ],
+        "type": "object"
+      },
+      "ThreadInviteResult": {
+        "properties": {
+          "code": {
+            "nullable": true,
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "user",
+              "agent"
+            ],
+            "type": "string"
+          },
+          "message": {
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "added",
+              "already_participating",
+              "failed"
+            ],
+            "type": "string"
+          },
+          "target_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "target_id",
+          "status"
+        ],
+        "type": "object"
+      },
+      "ThreadMessage": {
+        "properties": {
+          "actor_kind": {
+            "description": "Wire-vocabulary actor kind (\"user\" or \"agent\") derived from\nthe row's prefixed sender_id — exposed even on this legacy-\nshape endpoint so consumers can switch off actor_kind instead\nof prefix-sniffing. Optional: omitted when the legacy sender\nhas no recognized prefix (Go runtime uses `omitempty`).\n`null` is never emitted.\n",
+            "enum": [
+              "user",
+              "agent"
+            ],
+            "type": "string"
+          },
+          "client_message_id": {
+            "description": "Echoed when the sender supplied one on submit. Allows\noptimistic-send clients to reconcile their placeholder\nbubble. Omitted when the sender did not supply one;\n`null` is never emitted.\n",
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "metadata": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "role": {
+            "description": "Persisted message role.\n",
+            "enum": [
+              "user",
+              "assistant",
+              "system",
+              "tool"
+            ],
+            "type": "string"
+          },
+          "sender_id": {
+            "description": "Legacy prefixed shape for the `/threads/{id}/messages` endpoint\n(e.g. `\"user:\u003cuuid\u003e\"`, `\"agent:\u003cuuid\u003e\"`, `\"guest:\u003cemail\u003e\"`).\nPreserved for back-compat with existing web/mobile clients.\nOther event APIs (HTTP poll `/events`, SSE, WebSocket) emit the\npure-UUID stripped shape per DC-007. New consumers should\nprefer `actor_kind` to discriminate caller-kind without\nprefix-aware string parsing.\n",
+            "type": "string"
+          },
+          "thread_seq": {
+            "description": "Per-thread monotonic seq assigned by the database trigger on commit.\nMirrored on WebSocket fanout `data.message.thread_seq` and the\nenvelope-level `data.thread_seq` for catch-up cursor advancement.\nOmitted on legacy fixtures that predate the trigger; `null` is\nnever emitted.\n",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "sender_id",
+          "role",
+          "content",
+          "metadata",
+          "created_at"
+        ],
+        "type": "object"
+      },
+      "ThreadMessagesResponse": {
+        "description": "Page of thread messages in reverse-chronological order, scoped to the calling identity's visibility.",
+        "properties": {
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/ThreadMessage"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "nullable": true,
+            "type": "string"
+          },
+          "thread_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "thread_id",
+          "messages"
+        ],
+        "type": "object"
+      },
+      "ThreadModeUpdateRequest": {
+        "properties": {
+          "participation_mode": {
+            "enum": [
+              "open",
+              "invocation_only"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "participation_mode"
+        ],
+        "type": "object"
+      },
+      "ThreadModeUpdateResponse": {
+        "properties": {
+          "participation_mode": {
+            "enum": [
+              "open",
+              "invocation_only"
+            ],
+            "type": "string"
+          },
+          "thread_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "thread_id",
+          "participation_mode"
         ],
         "type": "object"
       },
@@ -288,8 +698,7 @@
           "participant_kind": {
             "enum": [
               "agent",
-              "human",
-              "system"
+              "user"
             ],
             "type": "string"
           },
@@ -308,11 +717,33 @@
         ],
         "type": "object"
       },
+      "ThreadParticipantMutationRequest": {
+        "properties": {
+          "participants": {
+            "items": {
+              "$ref": "#/components/schemas/ParticipantIdentifier"
+            },
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "participants"
+        ],
+        "type": "object"
+      },
       "ThreadParticipantsResponse": {
         "properties": {
           "participants": {
             "items": {
               "$ref": "#/components/schemas/ThreadParticipant"
+            },
+            "type": "array"
+          },
+          "results": {
+            "description": "Per-target invite results. Present on create/invite responses; omitted for plain participants reads.",
+            "items": {
+              "$ref": "#/components/schemas/ThreadInviteResult"
             },
             "type": "array"
           },
@@ -326,6 +757,154 @@
           "participants"
         ],
         "type": "object"
+      },
+      "ThreadSummary": {
+        "description": "Summary row returned by GET /chat/threads. Participant set already has the caller filtered out for DMs to match the rendering convention used by the reference UI.",
+        "properties": {
+          "is_archived": {
+            "type": "boolean"
+          },
+          "kind": {
+            "enum": [
+              "dm",
+              "group"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "last_message_at": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "last_message_preview": {
+            "nullable": true,
+            "type": "string"
+          },
+          "needs_attention": {
+            "type": "boolean"
+          },
+          "participants": {
+            "items": {
+              "$ref": "#/components/schemas/ThreadParticipant"
+            },
+            "type": "array"
+          },
+          "thread_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "unread_count": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "thread_id",
+          "is_archived",
+          "participants",
+          "needs_attention",
+          "unread_count"
+        ],
+        "type": "object"
+      },
+      "ThreadWebhookRegisterRequest": {
+        "properties": {
+          "callback_url": {
+            "description": "HTTPS URL invoked when thread events are committed. Private/loopback addresses are rejected (SSRF guard).",
+            "format": "uri",
+            "type": "string"
+          }
+        },
+        "required": [
+          "callback_url"
+        ],
+        "type": "object"
+      },
+      "ThreadWebhookSubscription": {
+        "properties": {
+          "active": {
+            "type": "boolean"
+          },
+          "callback_url": {
+            "format": "uri",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "subscription_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "thread_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "subscription_id",
+          "thread_id",
+          "callback_url",
+          "active",
+          "created_at"
+        ],
+        "type": "object"
+      },
+      "UpdateMeRequest": {
+        "additionalProperties": false,
+        "anyOf": [
+          {
+            "required": [
+              "display_name"
+            ]
+          },
+          {
+            "required": [
+              "username"
+            ]
+          },
+          {
+            "required": [
+              "avatar_url"
+            ]
+          },
+          {
+            "required": [
+              "description"
+            ]
+          }
+        ],
+        "description": "Mixed-auth optimistic profile update request.\n\nCaller-specific field rules:\n- user JWT callers may update `display_name`, `username`, and `avatar_url`\n- external-agent callers may update `display_name`, `avatar_url`, and `description`\n\n`updated_at` is always required, at least one mutable field must be\npresent, caller-kind-incompatible fields are rejected, and `username`\nplus `description` may not be sent together.\n",
+        "not": {
+          "required": [
+            "username",
+            "description"
+          ]
+        },
+        "properties": {
+          "avatar_url": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "updated_at"
+        ],
+        "type": "object"
       }
     },
     "securitySchemes": {
@@ -333,6 +912,18 @@
         "bearerFormat": "JWT or ama_eat token",
         "scheme": "bearer",
         "type": "http"
+      },
+      "internalAPIKey": {
+        "description": "Internal service-to-service API key. Use together with `X-Sender-ID`.",
+        "in": "header",
+        "name": "X-Internal-API-Key",
+        "type": "apiKey"
+      },
+      "senderIDHeader": {
+        "description": "Internal caller identity header. Use together with `X-Internal-API-Key`.",
+        "in": "header",
+        "name": "X-Sender-ID",
+        "type": "apiKey"
       }
     }
   },
@@ -344,7 +935,88 @@
   "openapi": "3.1.0",
   "paths": {
     "/api/v1/chat/threads": {
+      "get": {
+        "description": "Only user JWT callers are currently supported on this surface. External-agent and internal callers must address threads by id.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "filter",
+            "required": false,
+            "schema": {
+              "default": "all",
+              "enum": [
+                "all",
+                "needs_attention",
+                "archived"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "format": "int32",
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListThreadsResponse"
+                }
+              }
+            },
+            "description": "Thread list page"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid query parameter"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Authentication failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "List threads visible to the authenticated user",
+        "tags": [
+          "Thread Runtime"
+        ]
+      },
       "post": {
+        "description": "Two shapes are supported (see `CreateThreadRequest`):\n\n- Direct create: `kind` + `participants`.\n- Branched-from-source create: `source_thread_id` (+ optional `additional_participants`). Creates a new `kind=group` thread seeded from the source thread's active participants plus `additional_participants`. The source thread is not modified. Caller must have visibility of source (active participant OR owner of an active live agent participant). Concurrent branch calls may create distinct new groups (no server-side dedup).\n",
         "requestBody": {
           "content": {
             "application/json": {
@@ -366,6 +1038,16 @@
             },
             "description": "Thread created or reused"
           },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request cannot be applied. Error codes include:\n- `GROUP_REQUIRES_MIN_3` when `kind=group` and the post-filter active participant count would drop below three (e.g. targets that do not resolve to an existing user or active agent fail and leave fewer than three eligible participants). `details.results` carries per-target outcomes so the caller can render which targets failed.\n- `ALREADY_PARTICIPATING` when branching from source (`source_thread_id` set) and the caller is already an active human participant in the source thread AND `additional_participants` is empty.\n- `VALIDATION_ERROR` when the branched-from-source and direct-create shapes are mixed (e.g. sending both `kind`/`participants` and `source_thread_id`), or for malformed body / invalid participant shape.\n"
+          },
           "401": {
             "content": {
               "application/json": {
@@ -376,6 +1058,36 @@
             },
             "description": "Authentication failed"
           },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller is not permitted to create this thread (e.g. owner-invocation denied). For branched-from-source create, `FORBIDDEN` is returned when the caller has no visibility anchor on the source thread."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "For branched-from-source create (`source_thread_id` set), the source thread does not exist — `THREAD_NOT_FOUND`."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflicting thread already exists for the participant set"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -384,7 +1096,7 @@
                 }
               }
             },
-            "description": "Validation error"
+            "description": "Validation error (malformed body / invalid participant shape). DM partial-failure rollback also surfaces here via `details.results`."
           }
         },
         "security": [
@@ -398,7 +1110,373 @@
         ]
       }
     },
-    "/api/v1/chat/threads/{thread_id}/agent-messages": {
+    "/api/v1/chat/threads/{thread_id}": {
+      "get": {
+        "description": "Returns participants, inquiries, and an initial page of messages. Only user JWT callers are currently accepted on this surface.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "thread_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThreadDetailResponse"
+                }
+              }
+            },
+            "description": "Thread detail"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Authentication failed"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller is not authorized for this thread"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Thread not found"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Get thread detail",
+        "tags": [
+          "Thread Runtime"
+        ]
+      }
+    },
+    "/api/v1/chat/threads/{thread_id}/events": {
+      "get": {
+        "description": "Poll committed visible thread events using the durable `thread_seq` cursor.\nAuth accepts either bearer auth or the internal header pair\n`X-Internal-API-Key` + `X-Sender-ID`.\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "thread_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "last_thread_seq",
+            "required": false,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PollThreadEventsResponse"
+                }
+              }
+            },
+            "description": "Event page"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid cursor"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Authentication failed"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not authorized for the thread"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "internalAPIKey": [],
+            "senderIDHeader": []
+          }
+        ],
+        "summary": "Poll thread events",
+        "tags": [
+          "Thread Runtime"
+        ]
+      }
+    },
+    "/api/v1/chat/threads/{thread_id}/events/stream": {
+      "get": {
+        "description": "SSE stream of committed visible messages for a thread.\n\nAuth accepts either bearer auth or the internal header pair\n`X-Internal-API-Key` + `X-Sender-ID`. For legacy internal callers,\n`sender_id` may be supplied as a query fallback when the middleware cannot\ninject `X-Sender-ID`; prefer the header form for new callers.\n\nThe server subscribes before replay, buffers up to 64 live envelopes during\ncatch-up, emits periodic `: heartbeat` comments, and sends a terminal\n`event: done` frame when the stream times out, access is revoked, or replay /\nlive buffering can no longer preserve sequence continuity.\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "thread_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "last_thread_seq",
+            "required": false,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Legacy internal-agent fallback when `X-Sender-ID` cannot be injected.\nMust use the canonical `agent:\u003cid\u003e` sender shape. Prefer the\n`X-Sender-ID` header for new callers.\n",
+            "in": "query",
+            "name": "sender_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {
+                "examples": {
+                  "message_committed": {
+                    "value": "id: 0d9f...\nevent: message_committed\ndata: {\"event_id\":\"11111111-1111-1111-1111-111111111111\",\"thread_id\":\"22222222-2222-2222-2222-222222222222\",\"thread_seq\":1,\"event_type\":\"message_committed\",\"sender_id\":\"33333333-3333-3333-3333-333333333333\",\"actor_kind\":\"agent\",\"role\":\"assistant\",\"content\":\"Hello\",\"metadata\":{},\"created_at\":\"2026-04-09T12:00:00Z\",\"client_message_id\":\"client-abc\"}\n"
+                  },
+                  "resync_required": {
+                    "value": "event: done\ndata: {\"reason\":\"resync_required\"}\n"
+                  }
+                },
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Server-Sent Events stream. Emits `message_committed` frames, periodic\nheartbeat comments, and terminal `event: done` frames with reasons such\nas `timeout`, `token_revoked`, `access_revoked`, or `resync_required`.\n"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid cursor or malformed internal sender hint"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Authentication failed"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not authorized for the thread"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Too many concurrent SSE connections"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Reserve-before-replay buffer overflowed before the live stream could\ncomplete its replay handshake. Reconnect after the supplied\n`Retry-After` delay with the highest acknowledged `last_thread_seq`.\n",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before reconnecting.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "internalAPIKey": [],
+            "senderIDHeader": []
+          }
+        ],
+        "summary": "Stream thread events over SSE",
+        "tags": [
+          "Thread Runtime"
+        ]
+      }
+    },
+    "/api/v1/chat/threads/{thread_id}/messages": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "thread_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "format": "int32",
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThreadMessagesResponse"
+                }
+              }
+            },
+            "description": "Page of thread messages"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid cursor or limit"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Authentication failed"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller is not authorized for this thread"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Thread not found"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "List thread messages",
+        "tags": [
+          "Thread Runtime"
+        ]
+      },
       "post": {
         "parameters": [
           {
@@ -468,14 +1546,15 @@
             "bearerAuth": []
           }
         ],
-        "summary": "Send a message as an external agent",
+        "summary": "Send a message on the unified thread message route",
         "tags": [
           "Thread Runtime"
         ]
       }
     },
-    "/api/v1/chat/threads/{thread_id}/events": {
-      "get": {
+    "/api/v1/chat/threads/{thread_id}/mode": {
+      "post": {
+        "description": "Toggle a thread between `open` and `invocation_only` participation modes.",
         "parameters": [
           {
             "in": "path",
@@ -485,37 +1564,28 @@
               "format": "uuid",
               "type": "string"
             }
-          },
-          {
-            "in": "query",
-            "name": "last_thread_seq",
-            "required": false,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ThreadModeUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PollThreadEventsResponse"
+                  "$ref": "#/components/schemas/ThreadModeUpdateResponse"
                 }
               }
             },
-            "description": "Event page"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Invalid cursor"
+            "description": "Mode updated"
           },
           "401": {
             "content": {
@@ -535,7 +1605,27 @@
                 }
               }
             },
-            "description": "Not authorized for the thread"
+            "description": "Caller not permitted to mutate participation mode for this thread"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Thread not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Validation error (invalid participation_mode value)"
           }
         },
         "security": [
@@ -543,14 +1633,15 @@
             "bearerAuth": []
           }
         ],
-        "summary": "Poll thread events",
+        "summary": "Update thread participation mode",
         "tags": [
           "Thread Runtime"
         ]
       }
     },
-    "/api/v1/chat/threads/{thread_id}/events/stream": {
-      "get": {
+    "/api/v1/chat/threads/{thread_id}/participants": {
+      "post": {
+        "description": "Mirrors the internal `inviteThreadParticipants` surface. Per-target outcomes are returned in `results[]`.\n\nDM target continues to reject with `400 DM_IS_IMMUTABLE`. To add participants to a DM, use `POST /threads` with `source_thread_id` to create a new Group thread seeded from the DM's participants (the original DM row is never modified).\n\nSelf-add by a caller whose owned agent is an active participant is now permitted (observer self-add). Only a single target equal to the caller's human actor is accepted under this widened gate.\n\nA caller who is already an active human participant and tries to self-add returns `400 ALREADY_PARTICIPATING` (a top-level error, distinct from the per-target `results[].status = already_participating` idempotent success row).\n",
         "parameters": [
           {
             "in": "path",
@@ -560,32 +1651,28 @@
               "format": "uuid",
               "type": "string"
             }
-          },
-          {
-            "in": "query",
-            "name": "last_thread_seq",
-            "required": false,
-            "schema": {
-              "format": "int64",
-              "type": "integer"
-            }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ThreadParticipantMutationRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "content": {
-              "text/event-stream": {
-                "examples": {
-                  "message_committed": {
-                    "value": "id: 0d9f...\nevent: message_committed\ndata: {\"event_id\":\"uuid\",\"thread_id\":\"uuid\",\"thread_seq\":1,\"event_type\":\"message_committed\",\"sender_id\":\"user:uuid\",\"content\":\"Hello\",\"created_at\":\"2026-04-09T12:00:00Z\"}\n"
-                  }
-                },
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/ThreadParticipantsResponse"
                 }
               }
             },
-            "description": "Server-Sent Events stream"
+            "description": "Participant set after invite, with per-target results"
           },
           "400": {
             "content": {
@@ -595,7 +1682,7 @@
                 }
               }
             },
-            "description": "Invalid cursor"
+            "description": "Request cannot be applied to this thread. Error codes include:\n- `DM_IS_IMMUTABLE` when the target thread is a DM — use `POST /threads` with `source_thread_id` instead.\n- `INVALID_THREAD_TYPE` when the thread is not private.\n- `ALREADY_PARTICIPATING` when the caller self-adds while already an active human participant.\n"
           },
           "401": {
             "content": {
@@ -615,7 +1702,368 @@
                 }
               }
             },
-            "description": "Not authorized for the thread"
+            "description": "Caller does not have invite permission on this thread (e.g. `REMOVE_NOT_PERMITTED`)."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Thread not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Validation error (e.g. malformed participants payload)"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Invite one or more participants to a thread",
+        "tags": [
+          "Thread Runtime"
+        ]
+      }
+    },
+    "/api/v1/chat/threads/{thread_id}/participants/{actor_id}": {
+      "delete": {
+        "description": "Only self-removal or owned-agent removal is allowed (rule R3). DMs are immutable.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "thread_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "actor_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThreadParticipantsResponse"
+                }
+              }
+            },
+            "description": "Refreshed participant list"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Request cannot be applied to this thread (e.g. `DM_IS_IMMUTABLE` on DM threads; `GROUP_REQUIRES_MIN_3` when removing would drop the group below three active participants)."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Authentication failed"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller is not allowed to remove this participant (e.g. `REMOVE_NOT_PERMITTED` — only self-removal or owned-agent removal is permitted)."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Thread or participant not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "State conflict (e.g. `OWNER_PARTICIPANT` when attempting to remove the thread owner)."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Remove a participant from a thread",
+        "tags": [
+          "Thread Runtime"
+        ]
+      }
+    },
+    "/api/v1/chat/threads/{thread_id}/webhooks": {
+      "post": {
+        "description": "External agents may register a callback URL that receives committed thread events. The callback URL must be\npublicly reachable and use HTTPS; private or loopback addresses are rejected by the SSRF guard. A thread may\nhold at most 10 active webhook subscriptions.\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "thread_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ThreadWebhookRegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThreadWebhookSubscription"
+                }
+              }
+            },
+            "description": "Webhook subscription created"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Authentication failed"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "External-agent authentication required or caller not authorized for thread"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Validation error (missing callback_url, SSRF guard, or per-thread subscription limit exceeded)"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Register a webhook subscription for thread events",
+        "tags": [
+          "Thread Runtime"
+        ]
+      }
+    },
+    "/api/v1/chat/threads/{thread_id}/webhooks/{subscription_id}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "thread_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "subscription_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Subscription removed"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Authentication failed"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "External-agent authentication required or caller not authorized for thread"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Subscription not found"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Remove a webhook subscription",
+        "tags": [
+          "Thread Runtime"
+        ]
+      }
+    },
+    "/api/v1/chat/ws/threads": {
+      "get": {
+        "description": "WebSocket handshake for the unified realtime stream. The HTTP request is a\n`GET` with `Connection: Upgrade` + `Upgrade: websocket`; on success the server\nresponds `101 Switching Protocols` and the connection transitions to the\nWebSocket framing protocol. See the `x-ama2-websocket-extension` block at the\ndocument root for the convention.\n\n**Auth — typed query slots.** Exactly one of `jwt`, `eat`, or `api_key` must be\npresent. `api_key` additionally requires `sender_id`. Slot dispatch is by\nquery-parameter name only — token values are never sniffed.\n\n**Catch-up cursor.** Pass `since_seq=N` to replay durable events\n(`thread_seq \u003e N`) for the caller's accessible threads before the live stream\nattaches. The cursor is the per-thread monotonic `thread_seq` returned by the\npolling, SSE, and WebSocket endpoints (see the `ThreadEvent.thread_seq`\nschema). Ephemeral frames (e.g. `thread_typing`) are never replayed.\n\n**Per-caller cap.** A single caller identity may hold at most 20 concurrent\nWebSocket connections. The 21st handshake is closed with WebSocket close code\n`1013` (Try Again Later, retryable).\n\n**Typing rate-limit.** Server-side token bucket: 4 rps with burst 8 per\n`(caller, thread)`. Excess typing frames are silently dropped server-side; the\nconnection is not closed.\n\n**Wire frames.** Every outbound frame carries an `actor` object\n(`{kind: 'user'|'agent', id: \u003cuuid\u003e, display_name?}`). `sender_id` on the wire\nis a pure UUID. `thread_message` frames also mirror `actor_kind` onto\n`data.message.actor_kind` (same value as `data.actor.kind`) for\nHTTP-poll-shape compatibility — third-party clients flattening\n`data.message` see the same `actor_kind` value the envelope carries.\nThe durable frame is `thread_message` (indexed by `thread_seq`,\nreplayable via `since_seq`). `thread_runtime` is **live-only in Phase 2**\n(not persisted, not replayed via `since_seq`; clients reconnecting after a\ngap must re-derive runtime state from durable history). Phase 3+ may add a\nruntime event store + replay path. Ephemeral frames (`thread_typing`, `pong`)\nare never replayed.\n\n**WebSocket close codes.**\n- `1001` — server shutdown / drain (terminal; do not auto-reconnect).\n- `1008` — policy violation (terminal). Reasons:\n  - `bad_auth_slots` — zero, multiple, or `api_key` without `sender_id`\n  - `bad_thread_id` — `?thread_id=` is not a valid UUID\n  - `bad_since_seq` — `?since_seq=` is not a non-negative integer\n  - `since_seq_requires_thread_id` — `?since_seq=` was supplied\n    without `?thread_id=`. Replay is thread-keyed; without a\n    thread to bind to, the cursor would be silently ignored\n    and the caller would believe catch-up happened while\n    durable events were missed. Drop the `?since_seq=` cursor\n    on all-threads streams, or add `?thread_id=` to scope the\n    session.\n  Surfaced as HTTP `403` if the upgrade is rejected before the WebSocket\n  framing is negotiated.\n- `1013` — retryable. Reasons:\n  - `conn_cap_exceeded` — per-caller WS connection cap (20) reached\n  - `replay_buffer_overflow` — server-side reservation buffer (cap 64)\n    overflowed before AttachReplay consumed it\n  - `replay_truncated` — replay budget hit (200 pages × 50 events OR\n    30s wall clock); staged subscription cancelled. Caller MUST\n    reconnect with the previously-acknowledged `since_seq` to continue\n    catching up without silently skipping events.\n  - `replay_failed` — `PollThreadEvents` returned an error mid-replay;\n    staged subscription cancelled. Caller MUST reconnect with the\n    previously-acknowledged `since_seq`.\n  - `replay_write_failed` — wire write failed mid-replay (peer hung up\n    or write deadline tripped). Caller MUST reconnect with the\n    previously-acknowledged `since_seq`.\n  Surfaced as HTTP `429` if the cap is rejected pre-upgrade. Clients SHOULD\n  reconnect with exponential backoff and preserve `since_seq`.\n- `4001` — invalid token. Two reason strings:\n  - `invalid_token` — signature, expiry, or revocation failure at\n    handshake. Surfaced as HTTP `401` if the auth check fires\n    pre-upgrade.\n  - `token_revoked` — token revoked DURING an active session\n    (post-handshake). Emitted by the periodic access-recheck\n    (~30s cadence) when an EAT's `revoked_at` becomes non-null\n    OR when the internal API key is rotated.\n  Both reasons are terminal — do NOT auto-reconnect with the\n  same credential.\n- `4003` — caller is authenticated but lacks read access. Two reason\n  strings:\n  - `forbidden_thread` — caller lacks read access to the supplied\n    `?thread_id=` at handshake. Surfaced as HTTP `403` if the\n    access check fires pre-upgrade.\n  - `access_revoked` — read access revoked DURING an active\n    session (post-handshake). Emitted by the periodic\n    access-recheck when the caller is removed from the thread's\n    participants OR the thread ACL changes.\n  Both reasons are terminal — do NOT auto-reconnect to the same\n  `(token, thread_id)` pair (anti-IDOR enforcement).\n",
+        "operationId": "openThreadWebSocket",
+        "parameters": [
+          {
+            "description": "Supabase user JWT. Mutually exclusive with `eat` and `api_key`.",
+            "in": "query",
+            "name": "jwt",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "External-agent token (`ama_eat_*`). Mutually exclusive with `jwt` and `api_key`.",
+            "in": "query",
+            "name": "eat",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Internal API key. Requires `sender_id`. Mutually exclusive with `jwt` and `eat`.\n",
+            "in": "query",
+            "name": "api_key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Pure-UUID actor id for the caller. Required when `api_key` is present;\nignored when `api_key` is absent.\n",
+            "in": "query",
+            "name": "sender_id",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Optional single thread-id filter. When supplied, the WS handshake\nreserves a subscription for that thread, runs `?since_seq=` replay\nagainst it, and serves live fanout for that thread only. Omit to\nsubscribe to the caller's full visible thread set via caller-key\nfanout. Phase 2 backend reads ONE value (extra `?thread_id=` query\nparams are silently ignored — Phase 3+ may extend to multi-thread).\n",
+            "in": "query",
+            "name": "thread_id",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Catch-up cursor. The server replays durable events with\n`thread_seq \u003e since_seq` for the caller's accessible threads before\nattaching to the live stream. See `ThreadEvent.thread_seq` for the cursor\ncontract. Ephemeral frames (e.g. `thread_typing`) are not replayed.\n",
+            "in": "query",
+            "name": "since_seq",
+            "required": false,
+            "schema": {
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "101": {
+            "description": "Switching Protocols — the HTTP connection has been upgraded to a WebSocket.\nAll subsequent traffic follows the WebSocket framing protocol; the wire\nframes carry an `actor` object and pure-UUID `sender_id` per Phase 2.\n"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Authentication failed before the upgrade completed. Maps to WebSocket\nclose code `4001` if the failure occurs after the upgrade.\n"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Bad auth-slot combination (zero, multiple, or `api_key` without\n`sender_id`). Maps to WebSocket close code `1008` if the failure occurs\nafter the upgrade.\n"
           },
           "429": {
             "content": {
@@ -625,7 +2073,48 @@
                 }
               }
             },
-            "description": "Too many concurrent SSE connections"
+            "description": "Per-caller WebSocket connection cap (20) exceeded. Maps to WebSocket\nclose code `1013` (Try Again Later, retryable) if rejection occurs after\nthe upgrade.\n"
+          }
+        },
+        "summary": "Open a unified thread WebSocket stream",
+        "tags": [
+          "Thread Realtime"
+        ]
+      },
+      "x-ama2-websocket": true
+    },
+    "/api/v1/me": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeResponse"
+                }
+              }
+            },
+            "description": "Caller profile"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Authentication failed"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller is not permitted to use /me"
           }
         },
         "security": [
@@ -633,7 +2122,90 @@
             "bearerAuth": []
           }
         ],
-        "summary": "Stream thread events over SSE",
+        "summary": "Resolve the authenticated caller profile",
+        "tags": [
+          "Thread Runtime"
+        ]
+      },
+      "patch": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeResponse"
+                }
+              }
+            },
+            "description": "Updated caller profile"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid optimistic-concurrency token, unsupported blank clear, reserved slug, or other request validation error"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Authentication failed"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller is not permitted to update /me"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller profile changed since the supplied `updated_at`, or the requested username slug already exists"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Update the authenticated caller profile",
         "tags": [
           "Thread Runtime"
         ]
@@ -641,6 +2213,7 @@
     },
     "/api/v1/owner/external-agents/tokens": {
       "get": {
+        "description": "List up to the 100 most recently created active or revoked tokens for the authenticated owner.",
         "responses": {
           "200": {
             "content": {
@@ -674,6 +2247,7 @@
         ]
       },
       "post": {
+        "description": "Issue one active long-lived token for a user-owned `bring_your_agent` actor.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -723,7 +2297,7 @@
                 }
               }
             },
-            "description": "Validation error"
+            "description": "Validation error (invalid UUID, unsupported subtype, invalid display name, or ownership/type mismatch)"
           }
         },
         "security": [
@@ -731,7 +2305,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "Create an external-agent token",
+        "summary": "Create a Bring Your Agent token",
         "tags": [
           "Agent Tokens"
         ]
@@ -739,6 +2313,7 @@
     },
     "/api/v1/owner/external-agents/tokens/{token_id}": {
       "delete": {
+        "description": "Revoke a token and return the resulting token record with `revoked_at` populated.",
         "parameters": [
           {
             "in": "path",
@@ -816,6 +2391,23 @@
     },
     {
       "name": "Thread Runtime"
+    },
+    {
+      "name": "Thread Realtime"
     }
-  ]
+  ],
+  "x-ama2-websocket-extension": {
+    "appliesTo": [
+      "paths",
+      "operations"
+    ],
+    "description": "`x-ama2-websocket: true` is an AMA2-specific OpenAPI vendor extension applied to a\npath or operation that completes its HTTP handshake by upgrading to a WebSocket\nconnection (RFC 6455). OpenAPI 3.1 has no native representation for the post-upgrade\nbidirectional protocol; the extension documents the upgrade intent and points\nconsumers at the wire-frame contract for the realtime payloads.\n\nOperations annotated with `x-ama2-websocket: true` follow these conventions:\n\n- The operation is documented as `GET` (the WebSocket handshake is an HTTP `GET`\n  with `Connection: Upgrade` + `Upgrade: websocket`).\n- The success response is `101 Switching Protocols`. No response body is defined;\n  the post-upgrade payload contract lives outside the OpenAPI document (see\n  `contracts/events/*.schema.json` and `services/backend-go/docs/api/chat.md`).\n- Auth is encoded as typed query slots (e.g. `?jwt=...`, `?eat=...`,\n  `?api_key=...\u0026sender_id=...`). The server selects the slot by query-parameter\n  name only — token values are never sniffed.\n- WebSocket close codes are documented under the operation description; HTTP\n  response codes (`401`, `403`, `429`) are surfaced for handshake-time failures\n  that map onto WebSocket close codes (`4001`, `1008`/`4003`, `1013`\n  respectively). `4003 forbidden_thread` is the IDOR-gate close emitted when\n  `?thread_id=` is supplied but the caller lacks read access; terminal.\n",
+    "example": {
+      "paths": {
+        "/chat/ws/threads": {
+          "x-ama2-websocket": true
+        }
+      }
+    }
+  }
 }

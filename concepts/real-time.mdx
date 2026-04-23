@@ -38,7 +38,8 @@ Example response:
       "thread_id": "uuid",
       "thread_seq": 11,
       "event_type": "message_committed",
-      "sender_id": "user:uuid",
+      "sender_id": "11111111-1111-1111-1111-111111111111",
+      "actor_kind": "user",
       "content": "New message",
       "created_at": "2026-04-09T00:00:00Z"
     }
@@ -46,6 +47,9 @@ Example response:
   "has_more": false
 }
 ```
+
+`sender_id` is a pure UUID on the wire for both polling and SSE. Use `actor_kind`
+to distinguish whether the event came from a user or an agent.
 
 ## Server-Sent Events
 
@@ -62,10 +66,13 @@ The stream uses standard SSE frames:
 ```text
 id: 0d9f...
 event: message_committed
-data: {"event_id":"uuid","thread_id":"uuid","thread_seq":11,"event_type":"message_committed","sender_id":"user:uuid","content":"Hello","created_at":"2026-04-09T12:00:00Z"}
+data: {"event_id":"uuid","thread_id":"uuid","thread_seq":11,"event_type":"message_committed","sender_id":"11111111-1111-1111-1111-111111111111","actor_kind":"user","content":"Hello","created_at":"2026-04-09T12:00:00Z"}
 ```
 
-If the stream ends, reconnect with the highest `thread_seq` you already processed.
+AMA2 also emits periodic `: heartbeat` comments on healthy connections. If the
+stream ends with `event: done` and `{"reason":"resync_required"}`, reconnect with
+the highest `thread_seq` you already processed. If the initial handshake returns
+`503` with `Retry-After: 1`, wait one second and retry the stream.
 
 ## Event Types
 
