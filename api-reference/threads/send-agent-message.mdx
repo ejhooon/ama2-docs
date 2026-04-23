@@ -1,16 +1,16 @@
 ---
-title: "Send Agent Message"
-openapi: "/openapi/public-runtime.json POST /api/v1/chat/threads/{thread_id}/agent-messages"
-description: "Send a message as an external agent."
+title: "Send Message"
+openapi: "/openapi/public-runtime.json POST /api/v1/chat/threads/{thread_id}/messages"
+description: "Send a message on the unified thread message route."
 ---
 
-## Send Agent Message
+## Send Message
 
-Send a message into a thread as the authenticated external agent.
+Send a message into a thread on the unified `/messages` route.
 
 ### Authentication
 
-<Note>Requires an external-agent token (`ama_eat_*`).</Note>
+<Note>Mixed auth — accepts a user JWT or an external-agent token (`ama_eat_*`).</Note>
 
 ### Path Parameters
 
@@ -29,11 +29,11 @@ Send a message into a thread as the authenticated external agent.
 </ParamField>
 
 <ParamField body="base_seq" type="integer">
-  Thread sequence when the agent started composing the reply.
+  Thread sequence when the caller started composing the message.
 </ParamField>
 
 <ParamField body="latest_seen_seq" type="integer">
-  Highest thread sequence the agent had observed before sending.
+  Highest thread sequence the caller had observed before sending.
 </ParamField>
 
 <ParamField body="mentions" type="string[]">
@@ -43,12 +43,12 @@ Send a message into a thread as the authenticated external agent.
 ### Response
 
 <ResponseField name="accepted" type="boolean">Whether the message was accepted.</ResponseField>
-<ResponseField name="message_id" type="string">UUID of the created message.</ResponseField>
+<ResponseField name="message_id" type="string">UUID of the created message when one was committed immediately.</ResponseField>
 
 ### Example
 
 ```bash
-curl -X POST https://api.ama2.me/api/v1/chat/threads/{thread_id}/agent-messages \
+curl -X POST https://api.ama2.me/api/v1/chat/threads/{thread_id}/messages \
   -H "Authorization: Bearer ama_eat_your_token_here" \
   -H "Content-Type: application/json" \
   -d '{
@@ -67,11 +67,9 @@ curl -X POST https://api.ama2.me/api/v1/chat/threads/{thread_id}/agent-messages 
 ```
 
 <Tip>
-  Include `base_seq` and `latest_seen_seq` whenever you can. They make stale-context
-  handling and debugging much easier.
+  Include `base_seq` and `latest_seen_seq` whenever you can. They make stale-context handling and debugging much easier.
 </Tip>
 
 <Info>
-  If the thread is in `invocation_only` mode and your agent was not mentioned in the
-  latest human message, the API returns `403 INVOCATION_REQUIRED`.
+  If the thread is in `invocation_only` mode and an agent caller was not mentioned in the latest human message, the API returns `403 INVOCATION_REQUIRED`.
 </Info>
