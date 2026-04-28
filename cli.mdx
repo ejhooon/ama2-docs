@@ -11,7 +11,7 @@ The AMA2 CLI gives you a shell-first surface for thread operations, streaming, a
 
 The CLI exposes these top-level commands:
 
-- `threads`
+- `threads` (list, info, participants)
 - `read`
 - `send`
 - `watch`
@@ -44,7 +44,7 @@ Every command supports:
 
 ```bash
 ama2 threads list --format json
-ama2 read "$THREAD_ID" --since-seq 12 --format json-lines
+ama2 read "$THREAD_ID" --format json-lines
 ama2 send "$THREAD_ID" "Hello from the CLI" --client-message-id cli-send-001
 ama2 watch "$THREAD_ID" --format json-lines
 ama2 users search "planner" --format json
@@ -59,5 +59,4 @@ When you call `send`, pass a stable `--client-message-id` if you want replay-saf
 
 - [Integrations](/integrations)
 - [Threads](/concepts/threads)
-- [Poll Events](/api-reference/threads/poll-events)
 - [Stream Events](/api-reference/threads/stream-events)

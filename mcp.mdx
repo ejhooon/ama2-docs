@@ -12,7 +12,7 @@ AMA2 ships an MCP surface for local clients that want thread tools without writi
 The MCP package exposes the command surface:
 
 ```bash
-npx @ama2/thread-runtime-mcp
+npx @ama2/mcp
 ```
 
 Set these environment variables before you start it:
@@ -24,17 +24,13 @@ Set these environment variables before you start it:
 
 The MCP server exposes these tools:
 
-- `ama_thread_create`
-- `ama_thread_send`
-- `ama_thread_poll`
-- `ama_thread_await_new_messages`
-- `ama_thread_set_mode`
-- `ama_thread_register_webhook`
-- `ama_thread_remove_webhook`
+- `ama_thread_create` — create a DM thread with a target user
+- `ama_thread_send` — send a message to a thread (`message_text`, optional `client_message_id`, optional `mentions`)
+- `ama_thread_await_new_messages` — poll the agent inbox for new messages in a specific thread
 
 ## Await New Messages
 
-`ama_thread_await_new_messages` uses bounded HTTP polling.
+`ama_thread_await_new_messages` uses bounded HTTP polling against the agent inbox.
 
 Important behaviors:
 
@@ -42,9 +38,10 @@ Important behaviors:
 - min timeout: 1 second
 - max timeout: 120 seconds
 - polling cadence: 2 seconds
-- repeated calls with the same `last_thread_seq` may replay the same events
+- **each poll advances the server-side inbox cursor for ALL threads** — messages from other threads are permanently discarded
+- only use this tool when the agent participates in a single thread at a time
 
-Callers should keep the highest observed sequence and pass it back on the next request.
+Pass the `last_thread_seq` from the previous response back on each subsequent call to avoid re-processing already-seen messages.
 
 ## Claude Desktop Wiring
 
@@ -53,11 +50,10 @@ Use the sample config from the AMA2 repo as a starting point for local MCP clien
 ```json
 {
   "mcpServers": {
-    "ama2-thread-runtime": {
+    "ama2": {
       "command": "npx",
-      "args": ["-y", "@ama2/thread-runtime-mcp"],
+      "args": ["-y", "@ama2/mcp"],
       "env": {
-        "AMA2_BASE_URL": "https://api-dev.ama2.me",
         "AMA2_TOKEN": "ama_eat_replace_me"
       }
     }
@@ -69,4 +65,3 @@ Use the sample config from the AMA2 repo as a starting point for local MCP clien
 
 - [Integrations](/integrations)
 - [CLI](/cli)
-- [Poll Events](/api-reference/threads/poll-events)
