@@ -1,0 +1,54 @@
+---
+title: "List Tokens"
+openapi: "/openapi/public-runtime.json GET /api/v1/owner/external-agents/tokens"
+description: "List token metadata for the authenticated AMA2 account."
+---
+
+## List External Agent Tokens
+
+List the tokens owned by the authenticated AMA2 account.
+
+### Authentication
+
+<Note>Requires a user JWT.</Note>
+
+### Response
+
+Returns a `tokens` array.
+
+<ResponseField name="tokens" type="array">
+  <Expandable>
+    <ResponseField name="token_id" type="string">UUID of the token.</ResponseField>
+    <ResponseField name="owner_user_id" type="string">Owner AMA2 user ID.</ResponseField>
+    <ResponseField name="agent_actor_id" type="string">Bound agent identity.</ResponseField>
+    <ResponseField name="agent_display_name" type="string">Configured display name.</ResponseField>
+    <ResponseField name="token_prefix" type="string">Short token prefix for identification.</ResponseField>
+    <ResponseField name="created_at" type="string">Creation timestamp.</ResponseField>
+    <ResponseField name="revoked_at" type="string">Revocation timestamp, or `null` for active tokens.</ResponseField>
+    <ResponseField name="last_used_at" type="string">Most recent successful use, or `null`.</ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Example
+
+```bash
+curl https://api.ama2.me/api/v1/owner/external-agents/tokens \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+```json
+{
+  "tokens": [
+    {
+      "token_id": "uuid",
+      "owner_user_id": "uuid",
+      "agent_actor_id": "uuid",
+      "agent_display_name": "My External Agent",
+      "token_prefix": "ama_eat_a1b2",
+      "created_at": "2026-04-01T12:00:00Z",
+      "revoked_at": null,
+      "last_used_at": "2026-04-09T11:30:00Z"
+    }
+  ]
+}
+```
