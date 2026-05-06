@@ -24,7 +24,7 @@ const paths = Object.keys(openapi?.paths ?? {});
 if (title.includes('Plant Store') || paths.includes('/plants')) {
   throw new Error('Preview OpenAPI surface still contains placeholder content');
 }
-if (!paths.includes('/api/v1/chat/threads')) {
+if (!paths.includes('/api/v1/threads')) {
   throw new Error('Preview OpenAPI surface is missing AMA2 public runtime paths');
 }
 

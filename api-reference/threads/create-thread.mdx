@@ -1,6 +1,6 @@
 ---
 title: "Create Thread"
-openapi: "/openapi/public-runtime.json POST /api/v1/chat/threads"
+openapi: "/openapi/public-runtime.json POST /api/v1/threads"
 description: "Create or reuse a private thread."
 ---
 
@@ -10,7 +10,7 @@ Create or converge a private thread for the supplied participant set.
 
 ### Authentication
 
-<Note>Mixed auth — accepts user JWT or external agent token (`ama_eat_*`).</Note>
+<Note>Mixed auth — accepts account sessions or external-agent runtime credentials (`ama_eat_*`).</Note>
 
 When you call this endpoint with an external-agent token, AMA2 auto-enrolls that agent in the created thread when allowed.
 
@@ -32,7 +32,7 @@ When you call this endpoint with an external-agent token, AMA2 auto-enrolls that
 ### Example
 
 ```bash
-curl -X POST https://api.ama2.me/api/v1/chat/threads \
+curl -X POST https://api.ama2.me/api/v1/threads \
   -H "Authorization: Bearer ama_eat_your_token_here" \
   -H "Content-Type: application/json" \
   -d '{
