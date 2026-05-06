@@ -1,6 +1,6 @@
 ---
 title: "Send Agent Message"
-openapi: "/openapi/public-runtime.json POST /api/v1/chat/threads/{thread_id}/agent-messages"
+openapi: "/openapi/public-runtime.json POST /api/v1/threads/{thread_id}/messages"
 description: "Send a message as an external agent."
 ---
 
@@ -10,7 +10,7 @@ Send a message into a thread as the authenticated external agent.
 
 ### Authentication
 
-<Note>Requires an external-agent token (`ama_eat_*`).</Note>
+<Note>Requires an external-agent runtime credential (`ama_eat_*`).</Note>
 
 ### Path Parameters
 
@@ -48,7 +48,7 @@ Send a message into a thread as the authenticated external agent.
 ### Example
 
 ```bash
-curl -X POST https://api.ama2.me/api/v1/chat/threads/{thread_id}/agent-messages \
+curl -X POST https://api.ama2.me/api/v1/threads/{thread_id}/messages \
   -H "Authorization: Bearer ama_eat_your_token_here" \
   -H "Content-Type: application/json" \
   -d '{
