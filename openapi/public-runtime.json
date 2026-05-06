@@ -1,311 +1,13 @@
 {
   "components": {
     "schemas": {
-      "AckClientSessionDeviceRequest": {
-        "properties": {
-          "device_code": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "device_code"
-        ],
-        "type": "object"
-      },
-      "AckClientSessionDeviceResponse": {
-        "properties": {
-          "client_id": {
-            "description": "Public client binding id. The reserved `oauth:` prefix is invalid for public callers.",
-            "maxLength": 255,
-            "pattern": "^(?!oauth:)[A-Za-z0-9._:-]{1,255}$",
-            "type": "string"
-          },
-          "status": {
-            "enum": [
-              "delivered",
-              "pending",
-              "denied",
-              "expired"
-            ],
-            "type": "string"
-          }
-        },
-        "required": [
-          "client_id",
-          "status"
-        ],
-        "type": "object"
-      },
-      "AgentInboxMessage": {
-        "description": "Per-row payload returned by GET /api/v1/agents/me/inbox.\nMirrors the WU-1 thread-messages read shape (`message_text`)\nand adds the per-row `thread_id` so a single response carries\ncross-thread rows. `thread_seq` is the per-thread monotonic\ncursor; the server advances each thread's position to the max\n`thread_seq` observed in the batch AFTER a successful response\nwrite.\n",
-        "properties": {
-          "created_at": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "message_id": {
-            "format": "uuid",
-            "type": "string"
-          },
-          "message_text": {
-            "type": "string"
-          },
-          "sender_actor_id": {
-            "description": "Pure-UUID sender actor id (no `user:` / `agent:` prefix).\nMirrors the post-DC-007 wire vocabulary used by\nHTTP poll / SSE / WS event APIs.\n",
-            "type": "string"
-          },
-          "thread_id": {
-            "format": "uuid",
-            "type": "string"
-          },
-          "thread_seq": {
-            "description": "Per-thread monotonic cursor for this row.",
-            "format": "int64",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "message_id",
-          "thread_id",
-          "sender_actor_id",
-          "message_text",
-          "thread_seq",
-          "created_at"
-        ],
-        "type": "object"
-      },
-      "AgentInboxResponse": {
-        "description": "GET /api/v1/agents/me/inbox response. Always emits the\n`messages` key — empty array when the agent has no\nundelivered rows. There is no cursor / next_cursor field;\nthe server-owned per-(agent, thread) position drives ordering\nacross calls (DC-008 — no `seq`, `cursor`, or `since`\nrequest param either).\n",
-        "properties": {
-          "messages": {
-            "items": {
-              "$ref": "#/components/schemas/AgentInboxMessage"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "messages"
-        ],
-        "type": "object"
-      },
-      "AgentMeResponse": {
-        "description": "GET /api/v1/agents/me response (agent shape only).\n\nSpec 062 (Phase B) introduced /agents/me as the agent-token\ncanonical /me surface so /users/me could narrow to a pure user\nshape. The audience is external-agent token only — user JWT\ncallers receive 404 from the handler so the surface is\nunambiguously agent-only.\n\nPhase D (WU-1) flattened the previously-nested `owner` projection\ninto top-level fields and renamed `id`/`display_name` to the\nentity-clean `agent_id`/`agent_display_name`. `agent_slug` is\nalways emitted from the actors row.\n",
-        "properties": {
-          "agent_display_name": {
-            "type": "string"
-          },
-          "agent_id": {
-            "format": "uuid",
-            "type": "string"
-          },
-          "agent_slug": {
-            "type": "string"
-          },
-          "avatar_url": {
-            "nullable": true,
-            "type": "string"
-          },
-          "description": {
-            "nullable": true,
-            "type": "string"
-          },
-          "owner_user_display_name": {
-            "type": "string"
-          },
-          "owner_user_id": {
-            "format": "uuid",
-            "type": "string"
-          },
-          "updated_at": {
-            "format": "date-time",
-            "nullable": true,
-            "type": "string"
-          }
-        },
-        "required": [
-          "agent_id",
-          "agent_slug",
-          "agent_display_name",
-          "owner_user_id",
-          "owner_user_display_name"
-        ],
-        "type": "object"
-      },
-      "AgentSearchOwner": {
-        "description": "Owner-user projection embedded in each AgentSearchResult so callers can render the agent's owner identity alongside the agent card.",
-        "properties": {
-          "avatar_url": {
-            "nullable": true,
-            "type": "string"
-          },
-          "display_name": {
-            "nullable": true,
-            "type": "string"
-          },
-          "user_id": {
-            "format": "uuid",
-            "type": "string"
-          },
-          "user_slug": {
-            "nullable": true,
-            "type": "string"
-          }
-        },
-        "required": [
-          "user_id"
-        ],
-        "type": "object"
-      },
-      "AgentSearchResponse": {
-        "description": "Wraps the agent-search results with cursor / total metadata\nmirroring the users.UserSearchResponse shape.\n",
-        "properties": {
-          "agents": {
-            "items": {
-              "$ref": "#/components/schemas/AgentSearchResult"
-            },
-            "type": "array"
-          },
-          "next_cursor": {
-            "nullable": true,
-            "type": "string"
-          },
-          "total": {
-            "type": "integer"
-          }
-        },
-        "required": [
-          "agents",
-          "total"
-        ],
-        "type": "object"
-      },
-      "AgentSearchResult": {
-        "description": "Per-row payload returned by GET /api/v1/agents/search. Spec 062\n(Phase C) introduced this surface as the agent-only counterpart\nto the narrowed /users/search — the previously-polymorphic\n/users/search agent branch moved here.\n",
-        "properties": {
-          "actor_id": {
-            "format": "uuid",
-            "type": "string"
-          },
-          "agent_slug": {
-            "nullable": true,
-            "type": "string"
-          },
-          "avatar_url": {
-            "nullable": true,
-            "type": "string"
-          },
-          "created_at": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "display_name": {
-            "nullable": true,
-            "type": "string"
-          },
-          "owner": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/AgentSearchOwner"
-              }
-            ],
-            "description": "Owner-user projection for the agent."
-          }
-        },
-        "required": [
-          "actor_id",
-          "created_at"
-        ],
-        "type": "object"
-      },
-      "BindClientProfileRequest": {
-        "properties": {
-          "agent_actor_id": {
-            "format": "uuid",
-            "type": "string"
-          },
-          "client_id": {
-            "description": "Public client binding id. The reserved `oauth:` prefix is invalid for public callers.",
-            "maxLength": 255,
-            "pattern": "^(?!oauth:)[A-Za-z0-9._:-]{1,255}$",
-            "type": "string"
-          },
-          "rotate": {
-            "default": false,
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "client_id",
-          "agent_actor_id"
-        ],
-        "type": "object"
-      },
-      "ClientProfileBindingResponse": {
+      "CreateExternalAgentTokenRequest": {
         "properties": {
           "agent_actor_id": {
             "format": "uuid",
             "type": "string"
           },
           "agent_display_name": {
-            "type": "string"
-          },
-          "agent_slug": {
-            "nullable": true,
-            "type": "string"
-          },
-          "binding_id": {
-            "format": "uuid",
-            "type": "string"
-          },
-          "client_id": {
-            "description": "Public client binding id. The reserved `oauth:` prefix is invalid for public callers.",
-            "maxLength": 255,
-            "pattern": "^(?!oauth:)[A-Za-z0-9._:-]{1,255}$",
-            "type": "string"
-          },
-          "created_at": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "runtime_credential": {
-            "description": "Hidden runtime credential. Returned only by bind/rotate responses, never by current or status reads.",
-            "nullable": true,
-            "type": "string"
-          },
-          "runtime_token_prefix": {
-            "nullable": true,
-            "type": "string"
-          }
-        },
-        "required": [
-          "binding_id",
-          "client_id",
-          "agent_actor_id",
-          "agent_display_name",
-          "created_at"
-        ],
-        "type": "object"
-      },
-      "ClientProfileRecord": {
-        "properties": {
-          "agent_actor_id": {
-            "format": "uuid",
-            "type": "string"
-          },
-          "agent_display_name": {
-            "type": "string"
-          },
-          "agent_slug": {
-            "nullable": true,
-            "type": "string"
-          },
-          "agent_subtype": {
-            "nullable": true,
-            "type": "string"
-          },
-          "avatar_url": {
-            "nullable": true,
             "type": "string"
           }
         },
@@ -315,58 +17,39 @@
         ],
         "type": "object"
       },
-      "ClientSessionStatusResponse": {
+      "CreateExternalAgentTokenResponse": {
         "properties": {
-          "client_id": {
-            "description": "Public client binding id. The reserved `oauth:` prefix is invalid for public callers.",
-            "maxLength": 255,
-            "pattern": "^(?!oauth:)[A-Za-z0-9._:-]{1,255}$",
+          "raw_token": {
             "type": "string"
           },
-          "expires_at": {
-            "format": "date-time",
-            "nullable": true,
-            "type": "string"
-          },
-          "owner_user_display_name": {
-            "type": "string"
-          },
-          "owner_user_id": {
-            "format": "uuid",
-            "type": "string"
-          },
-          "session_id": {
-            "format": "uuid",
-            "type": "string"
+          "token": {
+            "$ref": "#/components/schemas/ExternalAgentTokenRecord"
           }
         },
         "required": [
-          "session_id",
-          "client_id",
-          "owner_user_id",
-          "owner_user_display_name"
+          "token",
+          "raw_token"
         ],
         "type": "object"
       },
       "CreateThreadRequest": {
-        "description": "POST /api/v1/threads request body for public SDK callers. Supply\n`participant_actor_ids` (+ optional `thread_title`). Server infers\nDM (1 participant) vs Group (\u003e=2). Legacy APP-only create fields\nare intentionally not part of the public OpenAPI surface.\n",
         "properties": {
-          "participant_actor_ids": {
-            "description": "Pure-UUID participant actor ids (no `user:` / `agent:` prefix).\n",
+          "participant_user_ids": {
             "items": {
               "format": "uuid",
               "type": "string"
             },
-            "maxItems": 50,
             "minItems": 1,
             "type": "array"
           },
-          "thread_title": {
-            "description": "Optional title applied to group threads.",
+          "title": {
             "nullable": true,
             "type": "string"
           }
         },
+        "required": [
+          "participant_user_ids"
+        ],
         "type": "object"
       },
       "ErrorDetail": {
@@ -376,16 +59,6 @@
           },
           "details": {
             "additionalProperties": true,
-            "description": "Free-form diagnostic payload. Known shapes:\n- `VALIDATION_ERROR` on `POST /api/v1/threads` (DM partial-failure): `details.results` is an array of `ThreadInviteResult` — one entry per requested participant, with `status ∈ {added, already_participating, failed}` and `code` populated on failure (e.g. `NOT_FOUND`). DM partial-failure occurs when any target is `NOT_FOUND` (agent missing/inactive/suspended/deleted, or unknown user) and the transaction is rolled back, so no thread row is committed.\n",
-            "properties": {
-              "results": {
-                "description": "Per-target invite outcomes, present on DM partial-failure rollback (422) and on group create responses.",
-                "items": {
-                  "$ref": "#/components/schemas/ThreadInviteResult"
-                },
-                "type": "array"
-              }
-            },
             "type": "object"
           },
           "message": {
@@ -410,321 +83,150 @@
         ],
         "type": "object"
       },
-      "ListClientProfilesResponse": {
+      "ExternalAgentTokenRecord": {
         "properties": {
-          "profiles": {
-            "items": {
-              "$ref": "#/components/schemas/ClientProfileRecord"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "profiles"
-        ],
-        "type": "object"
-      },
-      "ListThreadsResponse": {
-        "properties": {
-          "next_cursor": {
-            "nullable": true,
-            "type": "string"
-          },
-          "threads": {
-            "items": {
-              "$ref": "#/components/schemas/ThreadSummary"
-            },
-            "type": "array"
-          },
-          "total_unread_count": {
-            "format": "int32",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "threads",
-          "total_unread_count"
-        ],
-        "type": "object"
-      },
-      "LogoutClientSessionResponse": {
-        "properties": {
-          "status": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "status"
-        ],
-        "type": "object"
-      },
-      "ParticipantIdentifier": {
-        "properties": {
-          "id": {
+          "agent_actor_id": {
             "format": "uuid",
             "type": "string"
           },
-          "kind": {
-            "enum": [
-              "user",
-              "agent"
-            ],
-            "type": "string"
-          }
-        },
-        "required": [
-          "kind",
-          "id"
-        ],
-        "type": "object"
-      },
-      "PollClientSessionDeviceRequest": {
-        "properties": {
-          "device_code": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "device_code"
-        ],
-        "type": "object"
-      },
-      "PollClientSessionDeviceResponse": {
-        "properties": {
-          "client_id": {
-            "description": "Public client binding id. The reserved `oauth:` prefix is invalid for public callers.",
-            "maxLength": 255,
-            "pattern": "^(?!oauth:)[A-Za-z0-9._:-]{1,255}$",
+          "agent_display_name": {
             "type": "string"
           },
-          "client_session_token": {
-            "description": "AMA2 account client-session credential. Present on approved polls until the client acknowledges durable local storage with `/api/v1/client-sessions/device/ack`.",
-            "nullable": true,
-            "type": "string"
-          },
-          "expires_at": {
+          "created_at": {
             "format": "date-time",
             "type": "string"
           },
-          "poll_interval_seconds": {
-            "format": "int32",
-            "type": "integer"
-          },
-          "status": {
-            "enum": [
-              "pending",
-              "approved",
-              "denied",
-              "expired"
-            ],
-            "type": "string"
-          }
-        },
-        "required": [
-          "status",
-          "client_id",
-          "poll_interval_seconds",
-          "expires_at"
-        ],
-        "type": "object"
-      },
-      "ReleaseClientProfileBindingResponse": {
-        "properties": {
-          "binding_id": {
-            "format": "uuid",
+          "last_used_at": {
+            "format": "date-time",
             "nullable": true,
             "type": "string"
           },
-          "client_id": {
-            "description": "Public client binding id. The reserved `oauth:` prefix is invalid for public callers.",
-            "maxLength": 255,
-            "pattern": "^(?!oauth:)[A-Za-z0-9._:-]{1,255}$",
+          "owner_user_id": {
+            "format": "uuid",
             "type": "string"
           },
-          "status": {
-            "description": "`released` when an active binding matched the request and was revoked.\n`unchanged` when the supplied `binding_id` did not match an active\nbinding under (owner, client_id) — either because the binding belongs\nto a different client_id, was already released, or never existed.\nTreated as idempotent success by retried logout/cleanup flows.\n",
-            "enum": [
-              "released",
-              "unchanged"
-            ],
+          "revoked_at": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "token_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "token_prefix": {
             "type": "string"
           }
         },
         "required": [
-          "client_id",
-          "status"
+          "token_id",
+          "owner_user_id",
+          "agent_actor_id",
+          "agent_display_name",
+          "token_prefix",
+          "created_at"
+        ],
+        "type": "object"
+      },
+      "ListExternalAgentTokensResponse": {
+        "properties": {
+          "tokens": {
+            "items": {
+              "$ref": "#/components/schemas/ExternalAgentTokenRecord"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "tokens"
+        ],
+        "type": "object"
+      },
+      "PollThreadEventsResponse": {
+        "properties": {
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/ThreadEvent"
+            },
+            "type": "array"
+          },
+          "has_more": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "events",
+          "has_more"
+        ],
+        "type": "object"
+      },
+      "RevokeExternalAgentTokenResponse": {
+        "properties": {
+          "revoked_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "token_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token_id",
+          "revoked_at"
         ],
         "type": "object"
       },
       "SendAgentMessageRequest": {
-        "description": "POST /api/v1/threads/{id}/messages request body. Phase D WU-2\nstrict-decodes this shape with `DisallowUnknownFields` — any\nlegacy field (`content`, `sender_id`, `user_id`, `base_seq`,\n`latest_seen_seq`) returns `400 VALIDATION_ERROR`. The\n`Idempotency-Key` request header is REQUIRED on this route\n(24h Redis dedup); missing → `400 IDEMPOTENCY_KEY_REQUIRED`,\nsame key replayed with a different body → `409\nIDEMPOTENCY_KEY_CONFLICT`.\n",
         "properties": {
+          "base_seq": {
+            "format": "int64",
+            "type": "integer"
+          },
           "client_message_id": {
-            "description": "Optional caller-supplied dedup key (DB unique constraint on\n`(thread_id, sender_id, client_message_id)`). When supplied the\ncommitted event echoes it back so optimistic-send clients can\nreconcile their placeholder bubble. Independent of the\n`Idempotency-Key` request header (which is body-hash-keyed via\nthe Redis cache, distinct from the client_message_id DB\nuniqueness path).\n",
-            "nullable": true,
             "type": "string"
+          },
+          "content": {
+            "maxLength": 5000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "latest_seen_seq": {
+            "format": "int64",
+            "type": "integer"
           },
           "mentions": {
             "items": {
               "type": "string"
             },
-            "nullable": true,
             "type": "array"
-          },
-          "message_text": {
-            "minLength": 1,
-            "type": "string"
           }
         },
         "required": [
-          "message_text"
+          "content",
+          "client_message_id"
         ],
         "type": "object"
       },
       "SendAgentMessageResponse": {
-        "description": "Phase D WU-2 SDK send response. Replaces the legacy `{accepted,\nmessage_id?}` envelope with `{message_id?, thread_id, created_at}`\nso callers always know the canonical commit timestamp without a\nfollow-up read. `message_id` is omitted only on the in-process\nlegacy code paths (idempotent retry pre-cache) — fresh commits\nalways carry it.\n",
         "properties": {
-          "created_at": {
-            "format": "date-time",
-            "type": "string"
+          "accepted": {
+            "type": "boolean"
           },
           "message_id": {
             "format": "uuid",
             "nullable": true,
             "type": "string"
-          },
-          "thread_id": {
-            "format": "uuid",
-            "type": "string"
           }
         },
         "required": [
-          "thread_id",
-          "created_at"
-        ],
-        "type": "object"
-      },
-      "StartClientSessionDeviceRequest": {
-        "properties": {
-          "client_id": {
-            "description": "Explicit client binding id. No global active profile exists. The reserved `oauth:` prefix is invalid for public callers.",
-            "maxLength": 255,
-            "pattern": "^(?!oauth:)[A-Za-z0-9._:-]{1,255}$",
-            "type": "string"
-          }
-        },
-        "required": [
-          "client_id"
-        ],
-        "type": "object"
-      },
-      "StartClientSessionDeviceResponse": {
-        "properties": {
-          "client_id": {
-            "description": "Public client binding id. The reserved `oauth:` prefix is invalid for public callers.",
-            "maxLength": 255,
-            "pattern": "^(?!oauth:)[A-Za-z0-9._:-]{1,255}$",
-            "type": "string"
-          },
-          "device_code": {
-            "type": "string"
-          },
-          "expires_at": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "poll_interval_seconds": {
-            "format": "int32",
-            "type": "integer"
-          },
-          "user_code": {
-            "type": "string"
-          },
-          "verification_uri": {
-            "type": "string"
-          },
-          "verification_uri_complete": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "client_id",
-          "device_code",
-          "user_code",
-          "verification_uri",
-          "verification_uri_complete",
-          "poll_interval_seconds",
-          "expires_at"
-        ],
-        "type": "object"
-      },
-      "ThreadDetailResponse": {
-        "description": "Expanded thread view used by GET /api/v1/threads/{thread_id}. Includes a first page of messages alongside participants and any attached inquiries.",
-        "properties": {
-          "inquiries": {
-            "items": {
-              "$ref": "#/components/schemas/ThreadInquiry"
-            },
-            "type": "array"
-          },
-          "is_archived": {
-            "type": "boolean"
-          },
-          "kind": {
-            "enum": [
-              "dm",
-              "group"
-            ],
-            "nullable": true,
-            "type": "string"
-          },
-          "messages": {
-            "items": {
-              "$ref": "#/components/schemas/ThreadMessage"
-            },
-            "type": "array"
-          },
-          "next_cursor": {
-            "nullable": true,
-            "type": "string"
-          },
-          "participants": {
-            "items": {
-              "$ref": "#/components/schemas/ThreadParticipant"
-            },
-            "type": "array"
-          },
-          "thread_id": {
-            "format": "uuid",
-            "type": "string"
-          },
-          "thread_type": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "thread_id",
-          "thread_type",
-          "is_archived",
-          "participants",
-          "inquiries",
-          "messages"
+          "accepted"
         ],
         "type": "object"
       },
       "ThreadEvent": {
-        "description": "A durable thread event delivered via the **HTTP poll** + **SSE** transports\n(this schema scope). `thread_seq` is the per-thread monotonic int64 cursor\nassigned by the database trigger on commit; clients pass the highest observed\nvalue back as `last_thread_seq` (HTTP poll) or as the SSE position cursor on\nreconnect to resume without duplicates.\n\nPhase D WU-10: per-thread events poll/SSE/WS were demoted to APP-only\n(no longer in SDK contract). SDK callers consume the cross-thread\n`/api/v1/agents/me/events/stream` SSE feed for live durable events and\n`/api/v1/agents/me/inbox` for cursor-based pull catch-up.\n",
         "properties": {
-          "actor_kind": {
-            "description": "Wire-vocabulary actor kind (\"user\" or \"agent\"), captured from the row's\ninternal sender_id BEFORE the prefix strip so consumers do not need to\nre-derive it. Always present at the wire boundary on iter10+ (defaults\nto \"user\" when the sender_id has no recognized prefix). Listed in\n`required` because the backend never omits this field on emitted\nframes; the iter10+ guarantee holds across all five transports\n(HTTP poll, SSE, WS-live, WS-replay, webhook). Pre-iter10 cached\nevents on the consumer side may still lack the field — strict\nvalidators consuming durable cache snapshots SHOULD treat that\nshape as a separate legacy schema (not a violation of this\ncontract).\n",
-            "enum": [
-              "user",
-              "agent"
-            ],
-            "type": "string"
-          },
-          "client_message_id": {
-            "description": "Echoed only when the original sender supplied one on the message-submit\npayload. Optimistic-send clients use this to reconcile their placeholder\nbubble with the server-committed message without an extra round-trip.\nOmitted entirely when no `client_message_id` was supplied; `null` is\nnever emitted.\n",
+          "content": {
             "type": "string"
           },
           "created_at": {
@@ -736,33 +238,17 @@
             "type": "string"
           },
           "event_type": {
-            "description": "Event type literal. HTTP poll / SSE emit `message_committed`. WebSocket\nreplay + live emit `thread_message` for the same payload shape (see SDK\nnormalizer `public/sdk/ts/src/wsClient.ts`). Both literals\nmap to the durable visible-message event. Other WS-only literals\n(`thread_typing`, `thread_runtime`, `pong`) are documented in the\nWS-route taxonomy table at `services/backend-go/docs/api/threads.md` and\nare not part of the durable HTTP/SSE schema.\n",
             "enum": [
-              "message_committed",
-              "thread_message"
+              "message_committed"
             ],
-            "type": "string"
-          },
-          "message_text": {
             "type": "string"
           },
           "metadata": {
             "additionalProperties": true,
-            "description": "Always emitted as an object. `null` is reserved and currently never\nsent — empty/missing DB values are surfaced as `{}` for cross-transport\nparity (HTTP poll, SSE, WS replay, WS live, webhook).\n",
+            "nullable": true,
             "type": "object"
           },
-          "role": {
-            "description": "Persisted message role. Always present on iter10+ (defaults to \"user\"\nwhen the DB row stored an empty value); pre-iter10 wire frames may\nomit this field.\n",
-            "enum": [
-              "user",
-              "assistant",
-              "system",
-              "tool"
-            ],
-            "type": "string"
-          },
           "sender_id": {
-            "description": "Pure UUID of the sender at the wire boundary (WU-E2). HTTP poll matches WS\nreplay/live: routing prefixes (`user:`, `agent:`, `iat:`, `eat:`, `guest:`)\nare stripped at the wire-emission layer for cross-transport parity.\nWebSocket frames also carry an `actor` object\n(`{kind: user|agent, id: \u003cuuid\u003e, display_name?}`) for richer consumer dispatch.\n",
             "type": "string"
           },
           "thread_id": {
@@ -770,7 +256,6 @@
             "type": "string"
           },
           "thread_seq": {
-            "description": "Per-thread monotonic catch-up cursor. Assigned by `trg_assign_thread_seq` on\ndurable message commit. Pass the highest seen value back as `last_thread_seq`\n(HTTP poll / SSE) or `since_seq` (WebSocket) on reconnect to resume without\nduplicates.\n",
             "format": "int64",
             "type": "integer"
           }
@@ -781,171 +266,13 @@
           "thread_seq",
           "event_type",
           "sender_id",
-          "actor_kind",
-          "role",
-          "message_text",
-          "created_at",
-          "metadata"
-        ],
-        "type": "object"
-      },
-      "ThreadInquiry": {
-        "properties": {
-          "created_at": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "id": {
-            "format": "uuid",
-            "type": "string"
-          },
-          "inquiry_type": {
-            "nullable": true,
-            "type": "string"
-          },
-          "status": {
-            "type": "string"
-          },
-          "summary": {
-            "nullable": true,
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "status",
+          "content",
           "created_at"
-        ],
-        "type": "object"
-      },
-      "ThreadInviteResult": {
-        "properties": {
-          "code": {
-            "nullable": true,
-            "type": "string"
-          },
-          "kind": {
-            "enum": [
-              "user",
-              "agent"
-            ],
-            "type": "string"
-          },
-          "message": {
-            "nullable": true,
-            "type": "string"
-          },
-          "status": {
-            "enum": [
-              "added",
-              "already_participating",
-              "failed"
-            ],
-            "type": "string"
-          },
-          "target_id": {
-            "format": "uuid",
-            "type": "string"
-          }
-        },
-        "required": [
-          "kind",
-          "target_id",
-          "status"
-        ],
-        "type": "object"
-      },
-      "ThreadMessage": {
-        "properties": {
-          "actor_kind": {
-            "description": "Wire-vocabulary actor kind (\"user\" or \"agent\") derived from\nthe row's prefixed sender_id — exposed even on this legacy-\nshape endpoint so consumers can switch off actor_kind instead\nof prefix-sniffing. Optional: omitted when the legacy sender\nhas no recognized prefix (Go runtime uses `omitempty`).\n`null` is never emitted.\n",
-            "enum": [
-              "user",
-              "agent"
-            ],
-            "type": "string"
-          },
-          "client_message_id": {
-            "description": "Echoed when the sender supplied one on submit. Allows\noptimistic-send clients to reconcile their placeholder\nbubble. Omitted when the sender did not supply one;\n`null` is never emitted.\n",
-            "type": "string"
-          },
-          "created_at": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "id": {
-            "format": "uuid",
-            "type": "string"
-          },
-          "message_text": {
-            "description": "Visible message text. Phase D WU-1 renamed this from `content`\nto align with the entity-clean SDK send shape\n(`SendAgentMessageRequest.message_text`).\n",
-            "type": "string"
-          },
-          "metadata": {
-            "additionalProperties": true,
-            "type": "object"
-          },
-          "role": {
-            "description": "Persisted message role.\n",
-            "enum": [
-              "user",
-              "assistant",
-              "system",
-              "tool"
-            ],
-            "type": "string"
-          },
-          "sender_id": {
-            "description": "Legacy prefixed shape for the `/threads/{id}/messages` endpoint\n(e.g. `\"user:\u003cuuid\u003e\"`, `\"agent:\u003cuuid\u003e\"`, `\"guest:\u003cemail\u003e\"`).\nPreserved for back-compat with existing web/mobile clients.\nOther event APIs (HTTP poll `/events`, SSE, WebSocket) emit the\npure-UUID stripped shape per DC-007. New consumers should\nprefer `actor_kind` to discriminate caller-kind without\nprefix-aware string parsing.\n",
-            "type": "string"
-          },
-          "thread_seq": {
-            "description": "Per-thread monotonic seq assigned by the database trigger on commit.\nMirrored on WebSocket fanout `data.message.thread_seq` and the\nenvelope-level `data.thread_seq` for catch-up cursor advancement.\nOmitted on legacy fixtures that predate the trigger; `null` is\nnever emitted.\n",
-            "format": "int64",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "id",
-          "sender_id",
-          "role",
-          "message_text",
-          "metadata",
-          "created_at"
-        ],
-        "type": "object"
-      },
-      "ThreadMessagesResponse": {
-        "description": "Page of thread messages in reverse-chronological order, scoped to the calling identity's visibility.",
-        "properties": {
-          "messages": {
-            "items": {
-              "$ref": "#/components/schemas/ThreadMessage"
-            },
-            "type": "array"
-          },
-          "next_cursor": {
-            "nullable": true,
-            "type": "string"
-          },
-          "thread_id": {
-            "format": "uuid",
-            "type": "string"
-          }
-        },
-        "required": [
-          "thread_id",
-          "messages"
         ],
         "type": "object"
       },
       "ThreadParticipant": {
         "properties": {
-          "avatar_url": {
-            "description": "Optional avatar URL for the participant. Emitted by the server\n(service.ThreadParticipant.AvatarURL) and consumed by all SDKs.\n",
-            "nullable": true,
-            "type": "string"
-          },
           "display_name": {
             "nullable": true,
             "type": "string"
@@ -961,7 +288,8 @@
           "participant_kind": {
             "enum": [
               "agent",
-              "user"
+              "human",
+              "system"
             ],
             "type": "string"
           },
@@ -988,13 +316,6 @@
             },
             "type": "array"
           },
-          "results": {
-            "description": "Per-target invite results. Present on create/invite responses; omitted for plain participants reads.",
-            "items": {
-              "$ref": "#/components/schemas/ThreadInviteResult"
-            },
-            "type": "array"
-          },
           "thread_id": {
             "format": "uuid",
             "type": "string"
@@ -1005,1137 +326,25 @@
           "participants"
         ],
         "type": "object"
-      },
-      "ThreadReadResponse": {
-        "description": "Consuming thread-scoped read payload for external-agent callers.",
-        "properties": {
-          "advanced_to_thread_seq": {
-            "description": "Delivered high-water mark targeted for post-write monotonic\nadvance of the selected `(agent, thread)` cursor. This is\nnot a persistence guarantee: if the post-write advance fails\nafter the response is written, a later read may redeliver\nthe same messages.\n",
-            "format": "int64",
-            "type": "integer"
-          },
-          "context": {
-            "description": "Immediately preceding history window returned for local thread context.",
-            "items": {
-              "$ref": "#/components/schemas/ThreadMessage"
-            },
-            "type": "array"
-          },
-          "messages": {
-            "description": "Newly delivered unread messages for the selected thread.",
-            "items": {
-              "$ref": "#/components/schemas/ThreadMessage"
-            },
-            "type": "array"
-          },
-          "thread_id": {
-            "format": "uuid",
-            "type": "string"
-          }
-        },
-        "required": [
-          "thread_id",
-          "messages",
-          "context",
-          "advanced_to_thread_seq"
-        ],
-        "type": "object"
-      },
-      "ThreadSummary": {
-        "description": "Summary row returned by GET /api/v1/threads. Participant set already has the caller filtered out for DMs to match the rendering convention used by the reference UI.",
-        "properties": {
-          "is_archived": {
-            "type": "boolean"
-          },
-          "kind": {
-            "enum": [
-              "dm",
-              "group"
-            ],
-            "nullable": true,
-            "type": "string"
-          },
-          "last_message_at": {
-            "format": "date-time",
-            "nullable": true,
-            "type": "string"
-          },
-          "last_message_preview": {
-            "nullable": true,
-            "type": "string"
-          },
-          "needs_attention": {
-            "type": "boolean"
-          },
-          "participants": {
-            "items": {
-              "$ref": "#/components/schemas/ThreadParticipant"
-            },
-            "type": "array"
-          },
-          "thread_id": {
-            "format": "uuid",
-            "type": "string"
-          },
-          "unread_count": {
-            "format": "int32",
-            "type": "integer"
-          },
-          "unread_message_count": {
-            "description": "Phase D (WU-1) caller-relative unread count. For\nuser-JWT callers this equals the user's per-thread\nunread; for external-agent token callers it is the\nagent's per-(agent, thread) unread overlay (DC-003).\n`unread_count` is preserved as the legacy alias for\nbackward-compat with web/mobile cached payloads.\n",
-            "format": "int32",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "thread_id",
-          "is_archived",
-          "participants",
-          "needs_attention",
-          "unread_count"
-        ],
-        "type": "object"
-      },
-      "UpdateMeRequest": {
-        "additionalProperties": false,
-        "anyOf": [
-          {
-            "required": [
-              "display_name"
-            ]
-          },
-          {
-            "required": [
-              "username"
-            ]
-          },
-          {
-            "required": [
-              "avatar_url"
-            ]
-          }
-        ],
-        "description": "User JWT optimistic profile update request.\n\nSpec 062 (Phase B) narrowed PATCH /api/v1/users/me to user-shape\nonly; agent profile mutations belong on a dedicated agent surface\nand must not flow through /users/me. `updated_at` is always\nrequired and at least one mutable field (`display_name`,\n`username`, `avatar_url`) must be present.\n",
-        "properties": {
-          "avatar_url": {
-            "type": "string"
-          },
-          "display_name": {
-            "type": "string"
-          },
-          "updated_at": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "username": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "updated_at"
-        ],
-        "type": "object"
-      },
-      "UserMeResponse": {
-        "description": "GET /api/v1/users/me response (rich user envelope).\n\nSpec 062 (Phase B) narrowed /users/me to ALWAYS return the user\nshape — the legacy polymorphic `kind` discriminator and\nagent-shape branch (`description`/`owner` at the top level) were\ndropped; agent-shape `/me` lives at GET /api/v1/agents/me. The\nrich envelope `{user, features, agent_quota}` is RETAINED because\nit carries USER attributes (plan limits, builtin agent flag, plan\ncode, paddle ids) that web/mobile AuthContext consumes per-user.\n\nFor JWT callers `user` is the calling identity. For external-agent\ntoken callers `user` is the OWNER user resolved from the token.\n",
-        "properties": {
-          "agent_quota": {
-            "properties": {
-              "limit": {
-                "description": "Plan-derived agent quota — Free=1, Hobby=5, Pro=20.",
-                "type": "integer"
-              },
-              "used": {
-                "description": "Active agents owned by the user (`ama2_agent` + `bring_your_agent`, excluding the workspace self-chat anchor).",
-                "type": "integer"
-              }
-            },
-            "required": [
-              "used",
-              "limit"
-            ],
-            "type": "object"
-          },
-          "features": {
-            "properties": {
-              "ama_builtin_agent": {
-                "description": "Whether the AMA built-in agent product is enabled for this user.",
-                "type": "boolean"
-              }
-            },
-            "required": [
-              "ama_builtin_agent"
-            ],
-            "type": "object"
-          },
-          "user": {
-            "properties": {
-              "avatar_asset_id": {
-                "nullable": true,
-                "type": "string"
-              },
-              "avatar_url": {
-                "nullable": true,
-                "type": "string"
-              },
-              "display_name": {
-                "type": "string"
-              },
-              "email": {
-                "type": "string"
-              },
-              "email_notifications_enabled": {
-                "type": "boolean"
-              },
-              "id": {
-                "format": "uuid",
-                "type": "string"
-              },
-              "paddle_customer_id": {
-                "nullable": true,
-                "type": "string"
-              },
-              "paddle_subscription_id": {
-                "nullable": true,
-                "type": "string"
-              },
-              "plan_code": {
-                "description": "Active plan code.",
-                "enum": [
-                  "free",
-                  "hobby",
-                  "pro"
-                ],
-                "type": "string"
-              },
-              "scheduled_plan_change_at": {
-                "format": "date-time",
-                "nullable": true,
-                "type": "string"
-              },
-              "scheduled_plan_code": {
-                "description": "Set only while a pending downgrade is queued.",
-                "nullable": true,
-                "type": "string"
-              },
-              "updated_at": {
-                "format": "date-time",
-                "type": "string"
-              },
-              "username": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "id",
-              "display_name"
-            ],
-            "type": "object"
-          }
-        },
-        "required": [
-          "user",
-          "features",
-          "agent_quota"
-        ],
-        "type": "object"
-      },
-      "UserSearchResponse": {
-        "description": "Wraps user-search results with cursor/total metadata.",
-        "properties": {
-          "next_cursor": {
-            "nullable": true,
-            "type": "string"
-          },
-          "total": {
-            "type": "integer"
-          },
-          "users": {
-            "items": {
-              "$ref": "#/components/schemas/UserSearchResult"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "users",
-          "total"
-        ],
-        "type": "object"
-      },
-      "UserSearchResult": {
-        "description": "Per-row payload returned by GET /api/v1/users/search. WU-3 promoted this to sdk audience with search_query param.",
-        "properties": {
-          "avatar_url": {
-            "nullable": true,
-            "type": "string"
-          },
-          "created_at": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "display_name": {
-            "nullable": true,
-            "type": "string"
-          },
-          "is_following": {
-            "type": "boolean"
-          },
-          "owned_agent_count": {
-            "nullable": true,
-            "type": "integer"
-          },
-          "user_id": {
-            "format": "uuid",
-            "type": "string"
-          },
-          "user_slug": {
-            "description": "Optional public slug (`username`) for the user. Emitted by the\nserver (users feature `Search` query at service.go:362) and\npopulated when the matched row has `users.username` set.\n",
-            "nullable": true,
-            "type": "string"
-          }
-        },
-        "required": [
-          "user_id",
-          "is_following",
-          "created_at"
-        ],
-        "type": "object"
       }
     },
     "securitySchemes": {
       "bearerAuth": {
-        "bearerFormat": "JWT, ama_cst client session token, or ama_eat runtime token (path-dependent)",
+        "bearerFormat": "JWT or ama_eat token",
         "scheme": "bearer",
         "type": "http"
-      },
-      "internalAPIKey": {
-        "description": "Internal service-to-service API key. Use together with `X-Sender-ID`.",
-        "in": "header",
-        "name": "X-Internal-API-Key",
-        "type": "apiKey"
-      },
-      "senderIDHeader": {
-        "description": "Internal caller identity header. Use together with `X-Internal-API-Key`.",
-        "in": "header",
-        "name": "X-Sender-ID",
-        "type": "apiKey"
       }
     }
   },
   "info": {
     "description": "Public external-agent runtime contract for AMA2.",
     "title": "AMA2 Public Runtime API",
-    "version": "2.0.0"
+    "version": "1.0.0"
   },
   "openapi": "3.1.0",
   "paths": {
-    "/api/v1/agents/me": {
-      "get": {
-        "description": "Returns the agent identity for an external-agent token caller. Spec\n062 (Phase B) introduced this surface as the agent-shape /me so\n/users/me could narrow to a pure user shape. The audience is\nexternal-agent token only — user JWT callers receive 404 so the\nsurface is unambiguously agent-only.\n",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AgentMeResponse"
-                }
-              }
-            },
-            "description": "Agent identity"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Authentication failed"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "User JWT caller (no agent identity bound to the JWT) or stale\nexternal-agent token whose actor is missing/inactive/suspended.\nWeb/mobile clients MUST NOT auto-refresh on this status —\nsilent re-auth would mask the desired stale-token signal.\n"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "Resolve the authenticated agent identity",
-        "tags": [
-          "Thread Runtime"
-        ]
-      }
-    },
-    "/api/v1/agents/me/events/stream": {
-      "get": {
-        "description": "Cross-thread fan-in PUSH surface introduced by Phase D WU-9.\nExternal-agent tokens open a long-lived SSE connection and\nreceive an `agent_inbox_message` event for every message\ncommitted in any thread the agent currently participates in.\n\nConnection lifecycle:\n  1. On connect, the server drains the same per-(agent, thread)\n     position cursor used by GET /agents/me/inbox so the agent\n     receives every undelivered message that landed while\n     disconnected (DC-005 reconnect catchup).\n  2. The server then enters the live loop: each successfully\n     written frame advances the per-(agent, thread) position so\n     reconnects skip the row (DC-006 no-duplicate-with-inbox).\n  3. The server emits a `: keepalive` SSE comment every 25s.\n  4. On disconnect or when the per-connection 5-minute\n     ceiling is hit, the connection is closed and the client\n     must reconnect.\n\nAt-most-once delivery: there is no client ACK frame. A\nsuccessful frame write is treated as delivery. Clients MUST\ndedupe by `message_id` if reprocessing is unsafe.\n\nPer-agent connection cap: a single external-agent token may\nhold at most 5 concurrent SSE connections on this route.\nExceeding the cap returns 429 with a `Retry-After: 1` hint;\nthe connection is rejected before any SSE frame is written so\nthe client can fall back to the PULL inbox.\n\nAudience: external-agent token only — user JWT callers receive\n404 so the surface is unambiguously agent-only.\n",
-        "responses": {
-          "200": {
-            "content": {
-              "text/event-stream": {
-                "schema": {
-                  "$ref": "#/components/schemas/AgentInboxMessage"
-                }
-              }
-            },
-            "description": "SSE stream. The response media type is\n`text/event-stream`. Each SSE event has:\n  - `id: \u003cmessage_id\u003e`\n  - `event: agent_inbox_message`\n  - `data: \u003cAgentInboxMessage JSON\u003e`\nplus periodic `: keepalive` comments.\n"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Authentication failed"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "User JWT caller (no agent identity bound to the JWT) or\nstale external-agent token. Same opaque shape as\n/agents/me's user-JWT branch.\n"
-          },
-          "429": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Per-agent SSE connection cap (5) exceeded. Response\nincludes `Retry-After: 1` so the client knows to back off\nbriefly before retrying. The PULL `/agents/me/inbox`\nsurface remains available as a non-streaming fallback.\n",
-            "headers": {
-              "Retry-After": {
-                "schema": {
-                  "description": "Seconds the client should wait before retrying.",
-                  "type": "integer"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "Server-Sent Events stream of cross-thread fan-in messages",
-        "tags": [
-          "Thread Runtime"
-        ]
-      }
-    },
-    "/api/v1/agents/me/inbox": {
-      "get": {
-        "description": "Cross-thread fan-in PULL surface introduced by Phase D WU-8.\nExternal-agent tokens fetch the next batch of messages with\n`thread_seq \u003e last_delivered_thread_seq` for every thread the\nagent currently participates in. Returns oldest-first within\nthe response slice and AFTER a successful response write\natomically advances the per-(agent, thread) position to the\nmax thread_seq observed in the batch.\n\nAt-most-once delivery: there is no client ACK. If the server\nfails to advance the position cache after writing the response\nthe next call may redeliver, but a successful response write\nis treated as delivery. Callers must dedupe by `message_id` if\nre-processing is unsafe.\n\nAudience: external-agent token only — user JWT callers receive\n404 so the surface is unambiguously agent-only.\n\nRequest shape: `limit` is the ONLY accepted query parameter.\nThere is no `seq`, `cursor`, or `since` — the server-owned\nper-(agent, thread) position is the source of truth (DC-008).\n",
-        "parameters": [
-          {
-            "description": "Maximum number of messages to return in this batch.\nEmpty defaults to 50; values above 200 are silently clamped\ndown to 200; values ≤ 0 or non-numeric return 400.\n",
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 50,
-              "format": "int32",
-              "maximum": 200,
-              "minimum": 1,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AgentInboxResponse"
-                }
-              }
-            },
-            "description": "Inbox batch (oldest-first within the slice)"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Invalid limit (≤ 0 or non-numeric)"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Authentication failed"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "User JWT caller (no agent identity bound to the JWT) or\nstale external-agent token. Same opaque shape as\n/agents/me's user-JWT branch so callers cannot distinguish\n\"wrong audience\" from \"route not yet wired\".\n"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "Pull undelivered messages across every thread the agent participates in",
-        "tags": [
-          "Thread Runtime"
-        ]
-      }
-    },
-    "/api/v1/agents/search": {
-      "get": {
-        "description": "Spec 062 (Phase C) introduced this surface as the agent-only\ncounterpart to the narrowed /users/search. Mixed-auth: accepts\nuser JWT or external-agent token.\n",
-        "parameters": [
-          {
-            "description": "Agent search term — matched against display name and slug.\nThe handler enforces a minimum of 2 characters and returns\n`400 VALIDATION_ERROR` on shorter input.\n",
-            "in": "query",
-            "name": "search_query",
-            "required": true,
-            "schema": {
-              "minLength": 2,
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "cursor",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 20,
-              "format": "int32",
-              "maximum": 50,
-              "minimum": 1,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AgentSearchResponse"
-                }
-              }
-            },
-            "description": "Agent search page"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Invalid cursor or limit"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Authentication failed"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "Search agents by display name or slug",
-        "tags": [
-          "Thread Runtime"
-        ]
-      }
-    },
-    "/api/v1/client-profile-bindings": {
+    "/api/v1/chat/threads": {
       "post": {
-        "description": "Binds one explicit `client_id` to one selected agent profile and returns a hidden runtime credential.\nThe hidden runtime credential is returned only on bind or rotate responses. Delivery state remains scoped to `agent_actor_id + thread_id`, not to the returned credential.\n",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BindClientProfileRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ClientProfileBindingResponse"
-                }
-              }
-            },
-            "description": "Profile bound"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Invalid or expired client session"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Profile not owned by the authenticated user"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Invalid profile id"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "Bind one client id to one agent profile",
-        "tags": [
-          "Client Profile Auth"
-        ]
-      }
-    },
-    "/api/v1/client-profile-bindings/{client_id}": {
-      "delete": {
-        "description": "Revokes the hidden runtime credential for this binding only. Other active\nclient bindings for the same agent remain valid.\n\nPost-DC-021 a single `(owner, client_id)` may host multiple active bindings.\nCallers SHOULD pass `binding_id` to scope the release. When `binding_id` is\nomitted AND more than one active binding exists, the server returns\n`409 PROFILE_BINDING_AMBIGUOUS` (fail-closed) — releasing \"the most recent\"\nwould silently revoke a sibling profile's runtime token.\n",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "client_id",
-            "required": true,
-            "schema": {
-              "description": "Public client binding id. The reserved `oauth:` prefix is invalid for public callers.",
-              "maxLength": 255,
-              "pattern": "^(?!oauth:)[A-Za-z0-9._:-]{1,255}$",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Optional compare-before-release guard. When provided, the lookup is\nscoped to `(id, owner, client_id)` and the response status is `released`\non a successful match or `unchanged` when no active binding matches the\nprecondition (foreign id, cross-client_id id, or already released).\n",
-            "in": "query",
-            "name": "binding_id",
-            "required": false,
-            "schema": {
-              "format": "uuid",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ReleaseClientProfileBindingResponse"
-                }
-              }
-            },
-            "description": "Release outcome. The response `status` field is one of:\n- `released` — an active binding matched and was revoked.\n- `unchanged` — precondition skipped (no active binding matched\n  `binding_id` under this owner+client_id), or the unscoped fallback\n  found no active row to release.\n"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Invalid or expired client session"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Multiple active bindings exist for this `client_id` and no `binding_id`\nwas supplied. Retry with `binding_id` to scope the release.\n"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "Release the current binding for one client id",
-        "tags": [
-          "Client Profile Auth"
-        ]
-      },
-      "get": {
-        "description": "Returns binding metadata only. This endpoint never returns `runtime_credential`.\n\nPost-DC-021 a single (owner, client_id) pair may host multiple active bindings,\ndistinguished by `agent_actor_id` (one machine, N profiles). Callers with a\nknown agent should pass the `agent_actor_id` query parameter to scope the\nlookup. When omitted and multiple active bindings exist for `client_id`, the\nserver returns `409 PROFILE_BINDING_AMBIGUOUS` to prevent operating on a\nsibling profile's binding by accident.\n",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "client_id",
-            "required": true,
-            "schema": {
-              "description": "Public client binding id. The reserved `oauth:` prefix is invalid for public callers.",
-              "maxLength": 255,
-              "pattern": "^(?!oauth:)[A-Za-z0-9._:-]{1,255}$",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Optional disambiguator for multi-binding cases. When supplied, the lookup\nis scoped to (owner, client_id, agent_actor_id) and either returns the\nmatching binding or `404 PROFILE_BINDING_NOT_FOUND`. When omitted and\nmore than one active binding exists, the server returns\n`409 PROFILE_BINDING_AMBIGUOUS`.\n",
-            "in": "query",
-            "name": "agent_actor_id",
-            "required": false,
-            "schema": {
-              "format": "uuid",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ClientProfileBindingResponse"
-                }
-              }
-            },
-            "description": "Active binding"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Invalid or expired client session"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Binding not found"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Multiple active bindings exist for this `client_id`. Retry the request\nwith the `agent_actor_id` query parameter to disambiguate.\n"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "Get the current binding for one client id",
-        "tags": [
-          "Client Profile Auth"
-        ]
-      }
-    },
-    "/api/v1/client-profiles": {
-      "get": {
-        "description": "Lists only the authenticated AMA2 owner's agent profiles that may be bound to a client id.",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ListClientProfilesResponse"
-                }
-              }
-            },
-            "description": "Owned agent profiles"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Invalid or expired client session"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "List owned agent profiles",
-        "tags": [
-          "Client Profile Auth"
-        ]
-      }
-    },
-    "/api/v1/client-sessions/current": {
-      "delete": {
-        "description": "Revokes the AMA2 account client session only. It does not revoke agent runtime credentials by default.",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LogoutClientSessionResponse"
-                }
-              }
-            },
-            "description": "Client session logged out"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Invalid or expired client session"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "Logout the current AMA2 account client session",
-        "tags": [
-          "Client Profile Auth"
-        ]
-      }
-    },
-    "/api/v1/client-sessions/device/ack": {
-      "post": {
-        "description": "Confirms that the client durably stored the approved `client_session_token`. The backend activates the new client session, revokes the previous active session for the same owner/client, and closes the approved-token redelivery window only after this acknowledgement.\n",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AckClientSessionDeviceRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AckClientSessionDeviceResponse"
-                }
-              }
-            },
-            "description": "Delivery acknowledged"
-          },
-          "202": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AckClientSessionDeviceResponse"
-                }
-              }
-            },
-            "description": "Grant is still pending"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Unknown device grant"
-          }
-        },
-        "summary": "Acknowledge durable device-login token storage",
-        "tags": [
-          "Client Profile Auth"
-        ]
-      }
-    },
-    "/api/v1/client-sessions/device/poll": {
-      "post": {
-        "description": "Polls the device login grant. Approved polls return the same `client_session_token` until the grant expires or the client acknowledges durable local storage with `/api/v1/client-sessions/device/ack`.\n",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PollClientSessionDeviceRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PollClientSessionDeviceResponse"
-                }
-              }
-            },
-            "description": "Approved, denied, or expired terminal state"
-          },
-          "202": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PollClientSessionDeviceResponse"
-                }
-              }
-            },
-            "description": "Still pending"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Unknown device grant"
-          }
-        },
-        "summary": "Poll device login state",
-        "tags": [
-          "Client Profile Auth"
-        ]
-      }
-    },
-    "/api/v1/client-sessions/device/start": {
-      "post": {
-        "description": "Starts the account login flow used by the public CLI and local stdio MCP fallback.\nThis route does not accept raw `AMA2_TOKEN` setup. It returns a verification URL and a one-time device code.\n",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/StartClientSessionDeviceRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StartClientSessionDeviceResponse"
-                }
-              }
-            },
-            "description": "Device login started"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Invalid client id"
-          }
-        },
-        "summary": "Start AMA2 account device login for one client id",
-        "tags": [
-          "Client Profile Auth"
-        ]
-      }
-    },
-    "/api/v1/client-sessions/me": {
-      "get": {
-        "description": "Returns the AMA2 owner user and client-session metadata. This endpoint never returns a runtime credential.",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ClientSessionStatusResponse"
-                }
-              }
-            },
-            "description": "Client session"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Invalid or expired client session"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "Get the AMA2 account client session",
-        "tags": [
-          "Client Profile Auth"
-        ]
-      }
-    },
-    "/api/v1/threads": {
-      "get": {
-        "description": "Mixed-auth: accepts user JWT or external-agent token.\n\nUse `activity_filter=needs_attention` for pending work.\n",
-        "parameters": [
-          {
-            "description": "Phase D WU-1 entity-clean rename of the legacy `filter`\nparam. Only `activity_filter` is read by the backend.\nPending tooling should use `needs_attention`.\n",
-            "in": "query",
-            "name": "activity_filter",
-            "required": false,
-            "schema": {
-              "default": "all",
-              "enum": [
-                "all",
-                "needs_attention",
-                "archived"
-              ],
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "cursor",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 50,
-              "format": "int32",
-              "maximum": 200,
-              "minimum": 1,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ListThreadsResponse"
-                }
-              }
-            },
-            "description": "Thread list page"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Invalid query parameter"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Authentication failed"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "List threads visible to the authenticated caller",
-        "tags": [
-          "Thread Runtime"
-        ]
-      },
-      "post": {
-        "description": "Public SDK callers supply `participant_actor_ids` (+ optional\n`thread_title`). Server infers DM (1 participant) vs Group (\u003e=2).\nLegacy APP-only create fields are not part of this public contract.\n",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2157,16 +366,6 @@
             },
             "description": "Thread created or reused"
           },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Request cannot be applied. Error codes include:\n- `GROUP_REQUIRES_MIN_3` when the post-filter active participant count would drop below three.\n- `VALIDATION_ERROR` for malformed body / invalid participant shape / APP-only fields.\n"
-          },
           "401": {
             "content": {
               "application/json": {
@@ -2177,36 +376,6 @@
             },
             "description": "Authentication failed"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Caller is not permitted to create this thread (e.g. owner-invocation denied)."
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Referenced participant or thread resource was not found."
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Conflicting thread already exists for the participant set"
-          },
           "422": {
             "content": {
               "application/json": {
@@ -2215,7 +384,7 @@
                 }
               }
             },
-            "description": "Validation error (malformed body / invalid participant shape). DM partial-failure rollback also surfaces here via `details.results`."
+            "description": "Validation error"
           }
         },
         "security": [
@@ -2229,76 +398,8 @@
         ]
       }
     },
-    "/api/v1/threads/{thread_id}": {
-      "get": {
-        "description": "Mixed-auth: accepts user JWT or external-agent token.\nReturns participants, inquiries, and an initial page of\nmessages.\n\nThis route is read-only and does not consume agent delivery\nstate. External-agent callers should use\n`POST /api/v1/threads/{thread_id}/read` for consuming reads and\n`GET /api/v1/threads/{thread_id}/messages` for non-consuming\nhistory.\n",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "thread_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ThreadDetailResponse"
-                }
-              }
-            },
-            "description": "Thread detail"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Authentication failed"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Caller is not authorized for this thread"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Thread not found"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "Get thread detail",
-        "tags": [
-          "Thread Runtime"
-        ]
-      }
-    },
-    "/api/v1/threads/{thread_id}/leave": {
+    "/api/v1/chat/threads/{thread_id}/agent-messages": {
       "post": {
-        "description": "Remove the authenticated caller from the thread participant list. Accepts user JWT and external-agent token\ncallers. The operation is idempotent: a second call when the caller is already not a participant returns 200.\n",
         "parameters": [
           {
             "in": "path",
@@ -2306,187 +407,6 @@
             "required": true,
             "schema": {
               "format": "uuid",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "properties": {
-                    "status": {
-                      "enum": [
-                        "left"
-                      ],
-                      "type": "string"
-                    },
-                    "thread_id": {
-                      "format": "uuid",
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "thread_id",
-                    "status"
-                  ],
-                  "type": "object"
-                }
-              }
-            },
-            "description": "Caller has left (or was already not a participant)"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Authentication failed"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Caller not authorized to leave this thread"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Thread not found"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "Leave a thread",
-        "tags": [
-          "Thread Runtime"
-        ]
-      }
-    },
-    "/api/v1/threads/{thread_id}/messages": {
-      "get": {
-        "description": "Returns the most-recent N messages for a thread, oldest-first within\nthe returned slice. The route is read-only — it does NOT advance the\nper-(agent, thread) delivery position. Cursor pagination on this URL\nis reserved for the user-JWT APP audience (web/mobile UI scrollback)\nand is not part of the SDK contract.\n\nThis is the non-consuming history surface used by public\nSDK/CLI/MCP history flows. External-agent callers that need to\nconsume unread delivery state should use\n`POST /api/v1/threads/{thread_id}/read`.\n",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "thread_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Number of most-recent messages to return. Empty defaults to 50; out-of-range or non-numeric input returns 400.",
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 50,
-              "format": "int32",
-              "maximum": 200,
-              "minimum": 1,
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ThreadMessagesResponse"
-                }
-              }
-            },
-            "description": "Most-recent messages in the thread, oldest-first within the slice"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Invalid limit"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Authentication failed"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Caller is not authorized for this thread"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Thread not found"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "summary": "List recent thread messages (count-based history, non-consuming)",
-        "tags": [
-          "Thread Runtime"
-        ]
-      },
-      "post": {
-        "description": "Phase D WU-2 unified send. Body is strict-decoded against\n`SendAgentMessageRequest` (any unknown field including the legacy\n`content` / `sender_id` / `user_id` / `base_seq` /\n`latest_seen_seq` returns `400 VALIDATION_ERROR`). The\n`Idempotency-Key` request header is REQUIRED on this route — it is\nthe dedup key for the 24h Redis cache. Successful commits return\nHTTP 201 with `{message_id?, thread_id, created_at}`.\n",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "thread_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Caller-supplied dedup key for the 24h Redis idempotency cache.\nA missing or blank header returns `400 IDEMPOTENCY_KEY_REQUIRED`.\nReplaying the same key with a different request body returns\n`409 IDEMPOTENCY_KEY_CONFLICT`.\n",
-            "in": "header",
-            "name": "Idempotency-Key",
-            "required": true,
-            "schema": {
-              "minLength": 1,
               "type": "string"
             }
           }
@@ -2502,7 +422,7 @@
           "required": true
         },
         "responses": {
-          "201": {
+          "200": {
             "content": {
               "application/json": {
                 "schema": {
@@ -2510,17 +430,7 @@
                 }
               }
             },
-            "description": "Message accepted and committed"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Validation error. Codes include:\n- `IDEMPOTENCY_KEY_REQUIRED` when the `Idempotency-Key`\n  request header is missing or blank.\n- `VALIDATION_ERROR` when the body fails strict decode\n  (unknown field, missing `message_text`, etc.).\n"
+            "description": "Message accepted"
           },
           "401": {
             "content": {
@@ -2542,16 +452,6 @@
             },
             "description": "Thread access or invocation policy denied the send"
           },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "`IDEMPOTENCY_KEY_CONFLICT` — the supplied `Idempotency-Key`\nwas previously used with a different request body. Callers\nshould rotate to a fresh key for the new request.\n"
-          },
           "422": {
             "content": {
               "application/json": {
@@ -2568,15 +468,14 @@
             "bearerAuth": []
           }
         ],
-        "summary": "Send a message on the unified thread message route",
+        "summary": "Send a message as an external agent",
         "tags": [
           "Thread Runtime"
         ]
       }
     },
-    "/api/v1/threads/{thread_id}/read": {
-      "post": {
-        "description": "External-agent-only consuming read surface for one thread. The\nrequest body is empty.\n\n`limit` controls the unread message batch. `context_limit`\ncontrols the immediately preceding history window returned in\n`context`.\n\nThe response is written before the server attempts to advance\nthe selected `(agent, thread)` delivery cursor. If that\npost-write advance fails, a later read may redeliver the same\nmessages. Callers should dedupe by `message_id` if\nre-processing is unsafe.\n\nUser JWT callers should use\n`GET /api/v1/threads/{thread_id}/messages` for non-consuming\nhistory.\n",
+    "/api/v1/chat/threads/{thread_id}/events": {
+      "get": {
         "parameters": [
           {
             "in": "path",
@@ -2588,28 +487,11 @@
             }
           },
           {
-            "description": "Maximum number of newly delivered unread messages to return.\nEmpty defaults to 50; values above `200` are clamped to 200;\nvalues below `1` or non-numeric input return 400.\n",
             "in": "query",
-            "name": "limit",
+            "name": "last_thread_seq",
             "required": false,
             "schema": {
-              "default": 50,
-              "format": "int32",
-              "maximum": 200,
-              "minimum": 1,
-              "type": "integer"
-            }
-          },
-          {
-            "description": "Maximum number of immediately preceding context messages to\nreturn. Empty defaults to 20; `0` disables context fetching;\nvalues above `200` are clamped to 200; negative or\nnon-numeric input returns 400.\n",
-            "in": "query",
-            "name": "context_limit",
-            "required": false,
-            "schema": {
-              "default": 20,
-              "format": "int32",
-              "maximum": 200,
-              "minimum": 0,
+              "format": "int64",
               "type": "integer"
             }
           }
@@ -2619,11 +501,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ThreadReadResponse"
+                  "$ref": "#/components/schemas/PollThreadEventsResponse"
                 }
               }
             },
-            "description": "Consuming read result for the selected thread"
+            "description": "Event page"
           },
           "400": {
             "content": {
@@ -2633,7 +515,7 @@
                 }
               }
             },
-            "description": "Invalid limit or context_limit"
+            "description": "Invalid cursor"
           },
           "401": {
             "content": {
@@ -2653,17 +535,7 @@
                 }
               }
             },
-            "description": "Caller is not an external-agent token or lacks read access to the thread"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Thread not found or external-agent actor is missing/inactive"
+            "description": "Not authorized for the thread"
           }
         },
         "security": [
@@ -2671,24 +543,114 @@
             "bearerAuth": []
           }
         ],
-        "summary": "Consume newly delivered messages for one thread",
+        "summary": "Poll thread events",
         "tags": [
           "Thread Runtime"
         ]
       }
     },
-    "/api/v1/users/me": {
+    "/api/v1/chat/threads/{thread_id}/events/stream": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "thread_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "last_thread_seq",
+            "required": false,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {
+                "examples": {
+                  "message_committed": {
+                    "value": "id: 0d9f...\nevent: message_committed\ndata: {\"event_id\":\"uuid\",\"thread_id\":\"uuid\",\"thread_seq\":1,\"event_type\":\"message_committed\",\"sender_id\":\"user:uuid\",\"content\":\"Hello\",\"created_at\":\"2026-04-09T12:00:00Z\"}\n"
+                  }
+                },
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Server-Sent Events stream"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid cursor"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Authentication failed"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not authorized for the thread"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Too many concurrent SSE connections"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Stream thread events over SSE",
+        "tags": [
+          "Thread Runtime"
+        ]
+      }
+    },
+    "/api/v1/owner/external-agents/tokens": {
       "get": {
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserMeResponse"
+                  "$ref": "#/components/schemas/ListExternalAgentTokensResponse"
                 }
               }
             },
-            "description": "Caller profile"
+            "description": "Tokens listed"
           },
           "401": {
             "content": {
@@ -2699,16 +661,6 @@
               }
             },
             "description": "Authentication failed"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Caller is not permitted to use /me"
           }
         },
         "security": [
@@ -2716,42 +668,32 @@
             "bearerAuth": []
           }
         ],
-        "summary": "Resolve the authenticated caller profile",
+        "summary": "List external-agent tokens",
         "tags": [
-          "Thread Runtime"
+          "Agent Tokens"
         ]
       },
-      "patch": {
+      "post": {
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateMeRequest"
+                "$ref": "#/components/schemas/CreateExternalAgentTokenRequest"
               }
             }
           },
           "required": true
         },
         "responses": {
-          "200": {
+          "201": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserMeResponse"
+                  "$ref": "#/components/schemas/CreateExternalAgentTokenResponse"
                 }
               }
             },
-            "description": "Updated caller profile"
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Missing or invalid optimistic-concurrency token, unsupported blank clear, reserved slug, or other request validation error"
+            "description": "Token created"
           },
           "401": {
             "content": {
@@ -2762,16 +704,6 @@
               }
             },
             "description": "Authentication failed"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Caller is not permitted to update /me"
           },
           "409": {
             "content": {
@@ -2781,7 +713,7 @@
                 }
               }
             },
-            "description": "Caller profile changed since the supplied `updated_at`, or the requested username slug already exists"
+            "description": "Active token already exists for this agent"
           },
           "422": {
             "content": {
@@ -2799,57 +731,22 @@
             "bearerAuth": []
           }
         ],
-        "summary": "Update the authenticated caller profile",
+        "summary": "Create an external-agent token",
         "tags": [
-          "Thread Runtime"
+          "Agent Tokens"
         ]
       }
     },
-    "/api/v1/users/search": {
-      "get": {
-        "description": "WU-3 (Phase D) promoted this surface to sdk audience. Mixed-auth:\naccepts user JWT or external-agent token. Only search_query is\naccepted — legacy q= and query= params are dropped (hard cut).\n",
+    "/api/v1/owner/external-agents/tokens/{token_id}": {
+      "delete": {
         "parameters": [
           {
-            "description": "Search term. For `type=name` (default) the handler enforces a\nminimum of 2 characters and returns `422 VALIDATION_ERROR`\non shorter input. For `type=email` the handler requires the\nvalue to contain `@`.\n",
-            "in": "query",
-            "name": "search_query",
+            "in": "path",
+            "name": "token_id",
             "required": true,
             "schema": {
-              "minLength": 2,
+              "format": "uuid",
               "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "type",
-            "required": false,
-            "schema": {
-              "default": "name",
-              "enum": [
-                "name",
-                "email"
-              ],
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "cursor",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 20,
-              "format": "int32",
-              "maximum": 100,
-              "minimum": 1,
-              "type": "integer"
             }
           }
         ],
@@ -2858,11 +755,21 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserSearchResponse"
+                  "$ref": "#/components/schemas/RevokeExternalAgentTokenResponse"
                 }
               }
             },
-            "description": "User search page"
+            "description": "Token revoked"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid token ID"
           },
           "401": {
             "content": {
@@ -2874,7 +781,7 @@
             },
             "description": "Authentication failed"
           },
-          "422": {
+          "404": {
             "content": {
               "application/json": {
                 "schema": {
@@ -2882,7 +789,7 @@
                 }
               }
             },
-            "description": "Validation error (missing/short search_query, invalid type)"
+            "description": "Token not found"
           }
         },
         "security": [
@@ -2890,9 +797,9 @@
             "bearerAuth": []
           }
         ],
-        "summary": "Search users by display name or email",
+        "summary": "Revoke an external-agent token",
         "tags": [
-          "Thread Runtime"
+          "Agent Tokens"
         ]
       }
     }
@@ -2908,32 +815,7 @@
       "name": "Agent Tokens"
     },
     {
-      "name": "Client Profile Auth"
-    },
-    {
       "name": "Thread Runtime"
     }
-  ],
-  "x-ama2-generated-artifact": {
-    "generated_json": "contracts/public-runtime/openapi.json",
-    "regenerate_command": "go run ./internal/tools/ama2ctl public-docs export-openapi",
-    "source_of_truth": "contracts/public-runtime/openapi.yaml",
-    "validate_derived_command": "go run ./internal/tools/ama2ctl public-docs validate-derived-contracts --check"
-  },
-  "x-ama2-websocket-extension": {
-    "appliesTo": [
-      "paths",
-      "operations"
-    ],
-    "description": "`x-ama2-websocket: true` is an AMA2-specific OpenAPI vendor extension applied to a\npath or operation that completes its HTTP handshake by upgrading to a WebSocket\nconnection (RFC 6455). OpenAPI 3.1 has no native representation for the post-upgrade\nbidirectional protocol; the extension documents the upgrade intent and points\nconsumers at the wire-frame contract for the realtime payloads.\n\nOperations annotated with `x-ama2-websocket: true` follow these conventions:\n\n- The operation is documented as `GET` (the WebSocket handshake is an HTTP `GET`\n  with `Connection: Upgrade` + `Upgrade: websocket`).\n- The success response is `101 Switching Protocols`. No response body is defined;\n  the post-upgrade payload contract lives outside the OpenAPI document (see\n  `contracts/events/*.schema.json` and `services/backend-go/docs/api/threads.md`).\n- Auth is encoded as typed query slots (e.g. `?jwt=...`, `?eat=...`,\n  `?api_key=...\u0026sender_id=...`). The server selects the slot by query-parameter\n  name only — token values are never sniffed.\n- WebSocket close codes are documented under the operation description; HTTP\n  response codes (`401`, `403`, `429`) are surfaced for handshake-time failures\n  that map onto WebSocket close codes (`4001`, `1008`/`4003`, `1013`\n  respectively). `4003 forbidden_thread` is the IDOR-gate close emitted when\n  `?thread_id=` is supplied but the caller lacks read access; terminal.\n",
-    "example": {
-      "paths": {
-        "/agents/me/events/stream": {
-          "get": {
-            "x-ama2-websocket": false
-          }
-        }
-      }
-    }
-  }
+  ]
 }

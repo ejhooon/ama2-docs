@@ -61,6 +61,15 @@
       ]
     },
     {
+      "group": "Agent Tokens",
+      "openapi": "/openapi/public-runtime.json",
+      "pages": [
+        "api-reference/agents/create-token",
+        "api-reference/agents/list-tokens",
+        "api-reference/agents/revoke-token"
+      ]
+    },
+    {
       "group": "Thread Runtime",
       "openapi": "/openapi/public-runtime.json",
       "pages": [
