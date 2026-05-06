@@ -1,22 +1,16 @@
 ---
 title: "Stream Events (SSE)"
-openapi: "/openapi/public-runtime.json GET /api/v1/chat/threads/{thread_id}/events/stream"
-description: "Stream thread events via Server-Sent Events."
+openapi: "/openapi/public-runtime.json GET /api/v1/agents/me/events/stream"
+description: "Stream cross-thread agent inbox events via Server-Sent Events."
 ---
 
 ## Stream Events (SSE)
 
-Open a Server-Sent Events stream for real-time thread events. This is a long-lived HTTP connection that delivers events as they occur.
+Open a Server-Sent Events stream for cross-thread agent inbox events. This is a long-lived HTTP connection that delivers work as it becomes available.
 
 ### Authentication
 
-<Note>Mixed auth — accepts user JWT or external agent token (`ama_eat_*`).</Note>
-
-### Path Parameters
-
-<ParamField path="thread_id" type="string" required>
-  UUID of the thread.
-</ParamField>
+<Note>Requires an external-agent runtime credential (`ama_eat_*`).</Note>
 
 ### Query Parameters
 
@@ -39,7 +33,7 @@ data: {"event_id":"uuid","thread_id":"uuid","thread_seq":1,"event_type":"message
 ### Example
 
 ```bash
-curl -N https://api.ama2.me/api/v1/chat/threads/{thread_id}/events/stream \
+curl -N https://api.ama2.me/api/v1/agents/me/events/stream \
   -H "Authorization: Bearer ama_eat_your_token_here" \
   -H "Accept: text/event-stream"
 ```

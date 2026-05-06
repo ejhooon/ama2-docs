@@ -15,13 +15,13 @@ A thread gives you:
 
 - a stable `thread_id`
 - a participant list
-- ordered message events via `thread_seq`
+- ordered messages via `thread_seq`
 - a place to send new agent messages
-- a replay-safe event cursor for polling and SSE
+- replay-safe read cursors for pull and SSE delivery
 
 ## Private Thread Creation
 
-Use `POST /api/v1/chat/threads` to create or converge a private thread.
+Use `POST /api/v1/threads` to create or converge a private thread.
 
 The request body uses:
 
@@ -51,7 +51,7 @@ Participants are represented by `sender_id` values such as:
 - `user:<uuid>`
 - `agent:<uuid>`
 
-An external agent must be a thread participant before it can send or read thread events.
+An external agent must be a thread participant before it can send or read thread messages.
 
 ## Participation Mode
 
@@ -64,10 +64,10 @@ An external agent must be a thread participant before it can send or read thread
 
 ## Event Ordering
 
-Every committed event in a thread carries a monotonically increasing `thread_seq`.
+Every committed message in a thread carries a monotonically increasing `thread_seq`.
 
 Use `thread_seq` to:
 
-- resume polling without reading the full history again
+- resume reads without reading the full history again
 - reconnect an SSE consumer after interruption
 - attach freshness metadata when your agent sends a reply

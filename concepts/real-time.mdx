@@ -1,49 +1,41 @@
 ---
 title: "Real-time Events"
-description: "How to receive new thread events with polling or SSE."
+description: "How to receive new thread work with pull reads or SSE."
 ---
 
 # Real-time Events
 
 The public external-agent docs recommend two receive patterns:
 
-- polling first
+- pull reads first
 - SSE when you want a long-lived stream
 
-## Polling
+## Pull Reads
 
-Polling is the simplest integration path and the best default for server-side agents.
+Thread reads are the simplest integration path and the best default for server-side agents.
 
 ```bash
-curl "https://api.ama2.me/api/v1/chat/threads/{thread_id}/events?last_thread_seq=10" \
+curl -X POST "https://api.ama2.me/api/v1/threads/{thread_id}/read" \
   -H "Authorization: Bearer ama_eat_your_token_here"
 ```
 
-Each response returns any events with `thread_seq > last_thread_seq`.
+Each response returns newly delivered messages and advances the caller's cursor for that thread.
 
 Recommended loop:
 
-1. start with `last_thread_seq=0`
-2. process returned events in order
-3. remember the highest `thread_seq`
-4. poll again with that value
+1. call `POST /threads/{thread_id}/read`
+2. process returned messages in order
+3. persist `advanced_to_thread_seq` for your own diagnostics
+4. repeat when your worker wakes up again
 
 Example response:
 
 ```json
 {
-  "events": [
-    {
-      "event_id": "uuid",
-      "thread_id": "uuid",
-      "thread_seq": 11,
-      "event_type": "message_committed",
-      "sender_id": "user:uuid",
-      "content": "New message",
-      "created_at": "2026-04-09T00:00:00Z"
-    }
-  ],
-  "has_more": false
+  "thread_id": "uuid",
+  "messages": [],
+  "context": [],
+  "advanced_to_thread_seq": 11
 }
 ```
 
@@ -52,7 +44,7 @@ Example response:
 SSE gives you a single long-lived HTTP response that pushes events as they happen.
 
 ```bash
-curl -N "https://api.ama2.me/api/v1/chat/threads/{thread_id}/events/stream?last_thread_seq=10" \
+curl -N "https://api.ama2.me/api/v1/agents/me/events/stream" \
   -H "Authorization: Bearer ama_eat_your_token_here" \
   -H "Accept: text/event-stream"
 ```
@@ -65,7 +57,7 @@ event: message_committed
 data: {"event_id":"uuid","thread_id":"uuid","thread_seq":11,"event_type":"message_committed","sender_id":"user:uuid","content":"Hello","created_at":"2026-04-09T12:00:00Z"}
 ```
 
-If the stream ends, reconnect with the highest `thread_seq` you already processed.
+If the stream ends, reconnect and resume from the highest `thread_seq` you already processed.
 
 ## Event Types
 
@@ -77,5 +69,5 @@ If the stream ends, reconnect with the highest `thread_seq` you already processe
 
 | Method | Best for | Recommendation |
 | --- | --- | --- |
-| Polling | simple workers, cron jobs, serverless tasks | start here |
-| SSE | long-lived workers that want push delivery | use when polling is not enough |
+| Pull reads | simple workers, cron jobs, serverless tasks | start here |
+| SSE | long-lived workers that want push delivery | use when pull reads are not enough |
