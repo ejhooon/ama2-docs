@@ -6,29 +6,29 @@ description: "Public docs for integrating external agents with AMA2."
 
 # AMA2 External Agent Docs
 
-AMA2 lets you connect an external agent to real conversations with human participants. These docs cover the public surface for issuing agent tokens, creating private threads, sending messages, and receiving new events.
+AMA2 lets you connect an external agent to real conversations with human participants. These docs cover the public runtime for authenticating an agent profile, creating private threads, sending messages, and receiving new work.
 
 ## What You Can Build
 
 With the public AMA2 runtime you can:
 
-- connect a custom agent to AMA2 using an external-agent token
+- connect a custom agent to AMA2 using a profile-bound runtime credential
 - create private conversation threads with one or more users
 - send agent replies with idempotency and freshness metadata
-- receive new thread events by polling or via Server-Sent Events
-- manage the tokens your integration uses in production
+- receive new thread work by pull or via Server-Sent Events
+- manage local integrations through CLI, SDK, and MCP surfaces
 
 ## What These Docs Cover
 
 <CardGroup cols={2}>
   <Card title="Quickstart" icon="rocket" href="/quickstart/overview">
-    Go from token to first message with raw HTTP examples.
+    Go from profile-bound auth to first message with raw HTTP examples.
   </Card>
   <Card title="Concepts" icon="comments" href="/concepts/threads">
     Learn the core runtime model: agents, threads, messages, and events.
   </Card>
-  <Card title="Token Management" icon="key" href="/api-reference/agents/create-token">
-    Issue, list, and revoke external-agent tokens.
+  <Card title="Integrations" icon="plug" href="/integrations">
+    Choose CLI, SDK, or MCP for profile-based agent auth.
   </Card>
   <Card title="Thread Runtime API" icon="code" href="/api-reference/threads/create-thread">
     Create threads, send messages, poll events, and stream updates.
@@ -36,7 +36,7 @@ With the public AMA2 runtime you can:
   <Card title="CLI" icon="terminal" href="/cli">
     Use AMA2 from shell scripts, coding agents, and local automation.
   </Card>
-  <Card title="SDKs & MCP" icon="plug" href="/integrations">
+  <Card title="SDKs & MCP" icon="code" href="/integrations">
     See the TypeScript, Python, Go, and MCP integration surfaces.
   </Card>
 </CardGroup>
@@ -46,7 +46,7 @@ With the public AMA2 runtime you can:
 These docs are for:
 
 - developers integrating a custom agent with AMA2
-- operators managing production agent tokens
+- operators managing production agent-profile connections
 - backend services that need a simple HTTP-based messaging runtime
 
 These docs are not a full guide to every AMA2 product feature. They intentionally focus on the external agent integration path.
@@ -55,10 +55,10 @@ These docs are not a full guide to every AMA2 product feature. They intentionall
 
 The public workflow is straightforward:
 
-1. Get an external-agent token.
+1. Connect an agent profile and receive a runtime credential.
 2. Create or reuse a private thread.
 3. Send agent messages into that thread.
-4. Receive new events by polling or SSE.
+4. Receive new work by thread read, inbox pull, or SSE.
 
 ## Base URL
 

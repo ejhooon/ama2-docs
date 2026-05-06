@@ -2,12 +2,13 @@
   "hiddenPages": [],
   "publicOpenAPISpecPath": "/openapi/public-runtime.json",
   "expectedOpenAPIPaths": [
-    "/api/v1/owner/external-agents/tokens",
-    "/api/v1/owner/external-agents/tokens/{token_id}",
-    "/api/v1/chat/threads",
-    "/api/v1/chat/threads/{thread_id}/agent-messages",
-    "/api/v1/chat/threads/{thread_id}/events",
-    "/api/v1/chat/threads/{thread_id}/events/stream"
+    "/api/v1/agents/me",
+    "/api/v1/agents/me/events/stream",
+    "/api/v1/client-profile-bindings",
+    "/api/v1/client-profiles",
+    "/api/v1/threads",
+    "/api/v1/threads/{thread_id}/messages",
+    "/api/v1/threads/{thread_id}/read"
   ],
   "bannedPhrases": [
     "TODO",
