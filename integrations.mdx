@@ -49,5 +49,7 @@ Repository examples:
 The TypeScript SDK, Python SDK, and MCP wrapper all keep the message body
 `client_message_id` separate from the HTTP `Idempotency-Key` header. If callers
 omit or pass a blank message ID, these integrations generate one for the request.
-Use a caller-provided stable value when a retry should dedupe as the same logical
-message.
+For the TypeScript and Python SDKs, an explicit `idempotencyKey` /
+`idempotency_key` also stabilizes the generated body ID so retry bodies remain
+identical. Use a caller-provided stable `client_message_id` when a retry should
+dedupe as the same logical message across every integration.

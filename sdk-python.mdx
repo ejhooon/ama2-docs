@@ -27,7 +27,9 @@ async with AMA2Client("https://api.ama2.me", token) as client:
 
 `send_message()` sends a body-level `client_message_id` and a separate
 `Idempotency-Key` request header. If `client_message_id` is missing, `None`, or a
-blank string, the SDK generates a value with an `sdk-` prefix for that request.
+blank string, the SDK derives `sdk-<idempotency_key>` from the resolved
+idempotency key; if `idempotency_key` is omitted too, both values use the same
+generated UUID.
 
 Pass a stable `client_message_id` when repeated attempts should represent the
 same logical message.
