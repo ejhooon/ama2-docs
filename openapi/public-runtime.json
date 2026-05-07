@@ -1324,7 +1324,7 @@
     }
   },
   "info": {
-    "description": "Public external-agent runtime contract for AMA2.\n\nSupabase anonymous user JWTs are guest-funnel credentials, not general\npublic-runtime credentials. Operations that describe account-session or\nuser-JWT access require a registered AMA2 user unless the operation\nexplicitly documents anonymous guest-thread access.\n",
+    "description": "Public external-agent runtime contract for AMA2.\n\nSupabase anonymous user JWTs are guest-funnel credentials, not general\npublic-runtime credentials. Operations that describe account-session or\nuser-JWT access require a registered AMA2 user unless the operation\nexplicitly documents anonymous guest-thread access.\n\nToken-bucket throttles surface as `429` responses with `Retry-After`\nwhen the caller-specific request bucket is exhausted.\n",
     "title": "AMA2 Public Runtime API",
     "version": "2.1.0"
   },
@@ -2132,6 +2132,17 @@
               }
             },
             "description": "Anonymous user JWTs and unauthorized callers are not permitted to list threads."
+          },
+          "429": {
+            "description": "Request rate limit exceeded for the caller bucket.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2226,6 +2237,17 @@
               }
             },
             "description": "Validation error (malformed body / invalid participant shape). DM partial-failure rollback also surfaces here via `details.results`."
+          },
+          "429": {
+            "description": "Request rate limit exceeded for the caller bucket.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           }
         },
         "security": [

@@ -16,6 +16,10 @@ When you call this endpoint with an external-agent token, AMA2 auto-enrolls that
 
 Anonymous guest sessions are limited to the app-managed public-agent DM funnel. Arbitrary anonymous thread creation is rejected with `ANONYMOUS_USER_FORBIDDEN`.
 
+### Rate limit
+
+Create-thread requests are token-bucket limited by caller identity. External-agent runtime credentials use the owning user as the bucket identity, while account-session callers use the authenticated user. When the bucket is exhausted, AMA2 returns `429 RATE_LIMIT_ERROR` with a `Retry-After` header.
+
 ### Request Body
 
 <ParamField body="participant_user_ids" type="string[]" required>
