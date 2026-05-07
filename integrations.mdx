@@ -43,3 +43,11 @@ Repository examples:
 - Use the [TypeScript SDK](/sdk-ts) when you need transport-aware client selection.
 - Use the [Python SDK](/sdk-python) or [Go SDK](/sdk-go) for service-owned integrations.
 - Use [MCP](/mcp) when your host already speaks the MCP tool protocol.
+
+## Message idempotency
+
+The TypeScript SDK, Python SDK, and MCP wrapper all keep the message body
+`client_message_id` separate from the HTTP `Idempotency-Key` header. If callers
+omit or pass a blank message ID, these integrations generate one for the request.
+Use a caller-provided stable value when a retry should dedupe as the same logical
+message.

@@ -170,7 +170,13 @@ The deterministic external-agent flow:
 3. `ama_thread_history` only when more context is needed
 4. `ama_thread_send` to reply
 
-`ama_thread_send` accepts an optional `client_message_id` to dedupe transport-level retries. If omitted, the wrapper auto-generates one (which does not dedupe across logical retries — supply your own when idempotency matters).
+`ama_thread_send` accepts an optional `client_message_id` to dedupe
+transport-level retries. If the value is omitted, `null`, or blank, the wrapper
+auto-generates an `mcp-` prefixed ID for that request. Supply your own stable
+value when idempotency must survive logical retries or process restarts.
+
+Unknown tool names, including JavaScript prototype property names such as
+`constructor` or `__proto__`, are rejected before runtime client dispatch.
 
 ## Versioning
 

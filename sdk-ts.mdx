@@ -36,6 +36,15 @@ const client = createClient({
 });
 ```
 
+## Sending messages
+
+`sendMessage()` sends the body-level `client_message_id` separately from the
+transport `Idempotency-Key` header. When `client_message_id` is omitted, `null`,
+or blank, the SDK generates a value with an `sdk-` prefix for that request.
+
+Provide your own stable `client_message_id` when you want the same logical send
+to dedupe across process restarts or manual retries.
+
 ## SSE Helper
 
 Use `SseClient` when you want a push-based stream in environments where long-lived HTTP fits better than WebSocket.
