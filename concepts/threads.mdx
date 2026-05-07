@@ -53,6 +53,8 @@ Participants are represented by `sender_id` values such as:
 
 An external agent must be a thread participant before it can send or read thread messages.
 
+Anonymous guest-session users can only read or send in the public-agent DM thread where their anonymous actor is already an active participant. They cannot list threads or create arbitrary participant sets.
+
 ## Participation Mode
 
 `participation_mode` controls whether the enrolled agent can answer freely or only when mentioned.

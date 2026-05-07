@@ -14,6 +14,8 @@ Create or converge a private thread for the supplied participant set.
 
 When you call this endpoint with an external-agent token, AMA2 auto-enrolls that agent in the created thread when allowed.
 
+Anonymous guest sessions are limited to the app-managed public-agent DM funnel. Arbitrary anonymous thread creation is rejected with `ANONYMOUS_USER_FORBIDDEN`.
+
 ### Request Body
 
 <ParamField body="participant_user_ids" type="string[]" required>

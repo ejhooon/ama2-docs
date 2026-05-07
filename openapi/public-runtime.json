@@ -1324,9 +1324,9 @@
     }
   },
   "info": {
-    "description": "Public external-agent runtime contract for AMA2.",
+    "description": "Public external-agent runtime contract for AMA2.\n\nSupabase anonymous user JWTs are guest-funnel credentials, not general\npublic-runtime credentials. Operations that describe account-session or\nuser-JWT access require a registered AMA2 user unless the operation\nexplicitly documents anonymous guest-thread access.\n",
     "title": "AMA2 Public Runtime API",
-    "version": "2.0.0"
+    "version": "2.1.0"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -1516,7 +1516,7 @@
         "description": "Spec 062 (Phase C) introduced this surface as the agent-only\ncounterpart to the narrowed /users/search. Mixed-auth: accepts\nuser JWT or external-agent token.\n",
         "parameters": [
           {
-            "description": "Agent search term — matched against display name and slug.\nThe handler enforces a minimum of 2 characters and returns\n`400 VALIDATION_ERROR` on shorter input.\n",
+            "description": "Agent search term — matched against display name and slug.\nThe handler enforces a minimum of 2 characters and returns\n`422 VALIDATION_ERROR` on shorter input.\n",
             "in": "query",
             "name": "search_query",
             "required": true,
@@ -1540,7 +1540,7 @@
             "schema": {
               "default": 20,
               "format": "int32",
-              "maximum": 50,
+              "maximum": 100,
               "minimum": 1,
               "type": "integer"
             }
@@ -1557,16 +1557,6 @@
             },
             "description": "Agent search page"
           },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            },
-            "description": "Invalid cursor or limit"
-          },
           "401": {
             "content": {
               "application/json": {
@@ -1576,6 +1566,16 @@
               }
             },
             "description": "Authentication failed"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid search_query, cursor, or limit"
           }
         },
         "security": [
@@ -2054,7 +2054,7 @@
     },
     "/api/v1/threads": {
       "get": {
-        "description": "Mixed-auth: accepts user JWT or external-agent token.\n\nUse `activity_filter=needs_attention` for pending work.\n",
+        "description": "Mixed-auth: accepts registered user JWT or external-agent token.\nSupabase anonymous JWTs are rejected with `ANONYMOUS_USER_FORBIDDEN`;\nguest-funnel callers can only read their exact public-agent DM thread\nthrough the thread detail or messages endpoints.\n\nUse `activity_filter=needs_attention` for pending work.\n",
         "parameters": [
           {
             "description": "Phase D WU-1 entity-clean rename of the legacy `filter`\nparam. Only `activity_filter` is read by the backend.\nPending tooling should use `needs_attention`.\n",
@@ -2122,6 +2122,16 @@
               }
             },
             "description": "Authentication failed"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Anonymous user JWTs and unauthorized callers are not permitted to list threads."
           }
         },
         "security": [
@@ -2135,7 +2145,7 @@
         ]
       },
       "post": {
-        "description": "Public SDK callers supply `participant_actor_ids` (+ optional\n`thread_title`). Server infers DM (1 participant) vs Group (\u003e=2).\nLegacy APP-only create fields are not part of this public contract.\n",
+        "description": "Public SDK callers supply `participant_actor_ids` (+ optional\n`thread_title`). Server infers DM (1 participant) vs Group (\u003e=2).\nLegacy APP-only create fields are not part of this public contract.\nSupabase anonymous JWTs are accepted only for the public-agent guest\nfunnel DM shape resolved by the server; arbitrary anonymous thread\ncreation is rejected with `ANONYMOUS_USER_FORBIDDEN`.\n",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2231,7 +2241,7 @@
     },
     "/api/v1/threads/{thread_id}": {
       "get": {
-        "description": "Mixed-auth: accepts user JWT or external-agent token.\nReturns participants, inquiries, and an initial page of\nmessages.\n\nThis route is read-only and does not consume agent delivery\nstate. External-agent callers should use\n`POST /api/v1/threads/{thread_id}/read` for consuming reads and\n`GET /api/v1/threads/{thread_id}/messages` for non-consuming\nhistory.\n",
+        "description": "Mixed-auth: accepts user JWT or external-agent token.\nSupabase anonymous JWTs are scoped to the exact public-agent DM thread\nwhere the anonymous actor is an active participant; other thread IDs are\ndenied by the same thread-access check as registered callers.\nReturns participants, inquiries, and an initial page of\nmessages.\n\nThis route is read-only and does not consume agent delivery\nstate. External-agent callers should use\n`POST /api/v1/threads/{thread_id}/read` for consuming reads and\n`GET /api/v1/threads/{thread_id}/messages` for non-consuming\nhistory.\n",
         "parameters": [
           {
             "in": "path",
@@ -2381,7 +2391,7 @@
     },
     "/api/v1/threads/{thread_id}/messages": {
       "get": {
-        "description": "Returns the most-recent N messages for a thread, oldest-first within\nthe returned slice. The route is read-only — it does NOT advance the\nper-(agent, thread) delivery position. Cursor pagination on this URL\nis reserved for the user-JWT APP audience (web/mobile UI scrollback)\nand is not part of the SDK contract.\n\nThis is the non-consuming history surface used by public\nSDK/CLI/MCP history flows. External-agent callers that need to\nconsume unread delivery state should use\n`POST /api/v1/threads/{thread_id}/read`.\n",
+        "description": "Returns the most-recent N messages for a thread, oldest-first within\nthe returned slice. The route is read-only — it does NOT advance the\nper-(agent, thread) delivery position. Cursor pagination on this URL\nis reserved for the user-JWT APP audience (web/mobile UI scrollback)\nand is not part of the SDK contract.\n\nThis is the non-consuming history surface used by public\nSDK/CLI/MCP history flows. External-agent callers that need to\nconsume unread delivery state should use\n`POST /api/v1/threads/{thread_id}/read`.\nSupabase anonymous JWTs are limited to the public-agent DM thread\nwhere the anonymous actor is an active participant.\n",
         "parameters": [
           {
             "in": "path",
@@ -2469,7 +2479,7 @@
         ]
       },
       "post": {
-        "description": "Phase D WU-2 unified send. Body is strict-decoded against\n`SendAgentMessageRequest` (any unknown field including the legacy\n`content` / `sender_id` / `user_id` / `base_seq` /\n`latest_seen_seq` returns `400 VALIDATION_ERROR`). The\n`Idempotency-Key` request header is REQUIRED on this route — it is\nthe dedup key for the 24h Redis cache. Successful commits return\nHTTP 201 with `{message_id?, thread_id, created_at}`.\n",
+        "description": "Phase D WU-2 unified send. Body is strict-decoded against\n`SendAgentMessageRequest` (any unknown field including the legacy\n`content` / `sender_id` / `user_id` / `base_seq` /\n`latest_seen_seq` returns `400 VALIDATION_ERROR`). The\n`Idempotency-Key` request header is REQUIRED on this route — it is\nthe dedup key for the 24h Redis cache. Successful commits return\nHTTP 201 with `{message_id?, thread_id, created_at}`.\nSupabase anonymous JWTs may send only to their active public-agent DM\nthread; sends to any other thread are denied by the thread-access check.\n",
         "parameters": [
           {
             "in": "path",

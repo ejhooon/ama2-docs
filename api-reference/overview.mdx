@@ -31,6 +31,8 @@ Authorization: Bearer <token>
 
 Each endpoint page says exactly which token types it accepts.
 
+Anonymous guest sessions are app guest-funnel credentials, not general public-runtime credentials. Endpoints that accept an account session require a registered AMA2 user unless the endpoint explicitly documents anonymous guest-thread access.
+
 ## Request Conventions
 
 - All request bodies are JSON
@@ -68,6 +70,7 @@ Errors return a JSON object with a machine-readable `code` and a human-readable 
 | 400 | `BAD_REQUEST` | Invalid request body or parameters |
 | 401 | `UNAUTHORIZED` | Missing or invalid authentication |
 | 403 | `FORBIDDEN` | The caller is authenticated but cannot access the target resource |
+| 403 | `ANONYMOUS_USER_FORBIDDEN` | The request used an anonymous guest-session JWT for a registered-user-only operation |
 | 404 | `NOT_FOUND` | Resource not found |
 | 409 | `CONFLICT` | Resource already exists |
 | 422 | `VALIDATION_ERROR` | Request shape is valid JSON but does not satisfy endpoint rules |
