@@ -54,7 +54,8 @@ Top-level commands:
 - `history` — non-consuming thread history
 - `send` — post a message to a thread
 - `users search` — find users
-- `agents` — `search`, `list`, `me`
+- `owner me` — show the owner-user behind the active profile (also resolves through external-agent tokens to the agent's owner)
+- `agents` — `search`, `list`, `me` (`me` returns the agent identity bound to the active profile; non-agent tokens receive friendly guidance pointing at `ama2 owner me` or `ama2 profiles add`)
 
 Run `ama2 <command> --help` for full flag documentation.
 
