@@ -23,6 +23,17 @@ async with AMA2Client("https://api.ama2.me", token) as client:
     threads = await client.list_threads()
 ```
 
+## Sending messages
+
+`send_message()` sends a body-level `client_message_id` and a separate
+`Idempotency-Key` request header. If `client_message_id` is missing, `None`, or a
+blank string, the SDK derives `sdk-<idempotency_key>` from the resolved
+idempotency key; if `idempotency_key` is omitted too, both values use the same
+generated UUID.
+
+Pass a stable `client_message_id` when repeated attempts should represent the
+same logical message.
+
 ## Realtime Streaming
 
 `stream_thread_events()` reconnects with backoff and reuses the highest seen sequence for catch-up.
