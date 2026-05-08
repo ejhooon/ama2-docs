@@ -1,38 +1,31 @@
 ---
 title: "TypeScript SDK"
-description: "Thread runtime client, auto transport selection, SSE helper, and webhook receiver."
+description: "Public AMA2 HTTP client with cross-thread event streaming."
 ---
 
 # TypeScript SDK
 
-The TypeScript SDK exposes the AMA2 thread runtime to Node, browsers, and worker-style runtimes.
+The TypeScript SDK exposes the AMA2 public thread runtime to Node, browsers, and worker-style runtimes.
 
 ## Main Exports
 
 - `ThreadRuntimeClient`
 - `createClient`
-- `WsClient`
-- `SseClient`
-- `createWebhookReceiver`
+- public request and response types
+- `detectRuntime` / `detectRuntimeFromScope`
 
-## Auto Transport
+The public package entrypoint is `@ama2/sdk`. Legacy per-thread transport helpers remain internal import paths for in-tree user-JWT consumers, but they are not exported from the package root.
 
-`createClient({ transport: "auto" })` selects the concrete transport from the runtime:
+## Client setup
 
-- Node-like runtimes: WebSocket client
-- worker-style runtimes: SSE client
-- unknown runtimes: HTTP client
-
-Webhook mode is opt-in only. Auto transport never chooses it.
+`createClient()` accepts the HTTP client shape. Cross-thread fan-in uses the same client through `streamEvents()` and `getInbox()`.
 
 ```ts
-import { createClient } from "@ama2/thread-runtime-sdk";
+import { createClient } from "@ama2/sdk";
 
 const client = createClient({
   baseURL: "https://api.ama2.me",
-  threadId: "00000000-0000-0000-0000-000000000000",
   token: process.env.AMA2_TOKEN!,
-  transport: "auto",
 });
 ```
 
@@ -46,22 +39,16 @@ key; if `idempotencyKey` is omitted too, both values use the same generated UUID
 Provide your own stable `client_message_id` when you want the same logical send
 to dedupe across process restarts or manual retries.
 
-## SSE Helper
+## Realtime streaming
 
-Use `SseClient` when you want a push-based stream in environments where long-lived HTTP fits better than WebSocket.
+Use `client.streamEvents()` for cross-thread push delivery. Use `client.getInbox()` when you want the companion pull surface.
 
 Key behaviors:
 
-- reconnects with `last_thread_seq`
+- reconnects with bounded backoff controls
 - preserves structured error responses
 - treats permanent client errors as terminal
-- de-duplicates replayed event IDs in memory
-
-## Webhook Receiver
-
-`createWebhookReceiver` parses AMA2 webhook deliveries and validates the event shape.
-
-The receiver currently exposes signature presence as metadata, but it does not claim cryptographic verification.
+- shares the backend-owned inbox position with `getInbox()`
 
 ## Learn More
 

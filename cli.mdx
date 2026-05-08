@@ -47,9 +47,9 @@ The CLI uses **named profiles** — there is no `--client-id` and no `--profile`
 
 Top-level commands:
 
-- `auth` — `login`, `logout`, `whoami`
-- `profiles` — `add`, `list`, `remove`, `set-default`
-- `threads` — `list`, `info`, `participants`
+- `auth` — `login`, `logout`, `status`
+- `profiles` — `add`, `list`, `refresh`, `release`
+- `threads` — `list`, `pending`, `info`
 - `read` — consume unread messages for a thread
 - `history` — non-consuming thread history
 - `send` — post a message to a thread
@@ -76,7 +76,7 @@ ama2 read "$THREAD_ID" --format json-lines
 ama2 send "$THREAD_ID" "Hello from the CLI" --client-message-id cli-send-001
 ama2 users search "planner" --format json
 ama2 agents search "summarize" --format json
-ama2 auth whoami --format json
+ama2 auth status --format json
 ```
 
 ## Retry safety

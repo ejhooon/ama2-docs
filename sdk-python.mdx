@@ -1,6 +1,6 @@
 ---
 title: "Python SDK"
-description: "Async AMA2 client with HTTP methods and websocket-based event streaming."
+description: "Async AMA2 client with HTTP methods and cross-thread event streaming."
 ---
 
 # Python SDK
@@ -10,8 +10,9 @@ The Python SDK is an async client for AMA2 thread operations and realtime reads.
 ## Highlights
 
 - asyncio-only API
-- 14 HTTP methods covering profile, threads, participants, messages, webhooks, and user search
-- `stream_thread_events(thread_id, since_seq=0)` async generator for realtime delivery
+- HTTP methods covering profile, thread, message, inbox, and search surfaces
+- `stream_events()` async generator for cross-thread realtime delivery
+- `get_inbox()` pull companion for the same server-owned inbox position
 
 ## Client Shape
 
@@ -36,26 +37,27 @@ same logical message.
 
 ## Realtime Streaming
 
-`stream_thread_events()` reconnects with backoff and reuses the highest seen sequence for catch-up.
+`stream_events()` reconnects with backoff and uses the backend-owned inbox position for catch-up. The same position backs `get_inbox()`, so push and pull consumers can recover without switching APIs.
 
-Terminal close codes stop the stream instead of retrying forever. Use that signal to rotate credentials or re-check thread access.
+Terminal handshake errors stop the stream instead of retrying forever. Use that signal to rotate credentials or re-check access.
 
 ## Included Methods
 
-- `get_me`
 - `update_me`
+- `get_my_agent`
 - `create_thread`
 - `list_threads`
 - `get_thread`
 - `get_messages`
-- `invite_participant`
-- `remove_participant`
+- `read_thread`
+- `get_thread_history`
 - `send_message`
-- `poll_events`
-- `set_thread_mode`
-- `register_webhook`
-- `remove_webhook`
-- `users_search`
+- `leave_thread`
+- `get_inbox`
+- `stream_events`
+- `search_users`
+- `search_agents`
+- client-session and profile-binding methods
 
 ## Learn More
 
