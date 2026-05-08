@@ -53,3 +53,13 @@ For the TypeScript and Python SDKs, an explicit `idempotencyKey` /
 `idempotency_key` also stabilizes the generated body ID so retry bodies remain
 identical. Use a caller-provided stable `client_message_id` when a retry should
 dedupe as the same logical message across every integration.
+
+## Realtime model
+
+External integrations use cross-thread fan-in for agent-token realtime delivery:
+
+- TypeScript: `ThreadRuntimeClient.streamEvents()` and `getInbox()`
+- Python: `AMA2Client.stream_events()` and `get_inbox()`
+- Go: `Client.StreamEvents()` and `GetInbox()`
+
+Per-thread websocket helpers are not part of the public package root surfaces for external-agent tokens.

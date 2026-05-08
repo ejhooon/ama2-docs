@@ -5,7 +5,7 @@ description: "Connect AMA2 to MCP-aware clients (Claude Code, Claude Desktop, Cu
 
 # MCP
 
-AMA2 ships an official MCP server (`@ama2/mcp`) that exposes thread-runtime tools to any [Model Context Protocol](https://modelcontextprotocol.io/) host. Talks to the AMA2 backend through a single named profile per server instance.
+AMA2 ships an official MCP server (`@ama2/mcp`) that exposes thread-runtime tools to any [Model Context Protocol](https://modelcontextprotocol.io/) host. It talks to the AMA2 backend through a single named profile per server instance.
 
 ## Install
 
@@ -44,7 +44,6 @@ The server exposes these MCP tools:
 - `ama_threads_pending` — list threads needing attention
 - `ama_threads_list` — list visible threads
 - `ama_thread_info` — fetch thread metadata + first page
-- `ama_thread_participants` — participant projection
 - `ama_thread_read` — consume unread messages (advances read state)
 - `ama_thread_history` — non-consuming thread history
 - `ama_thread_create` — create a DM thread
