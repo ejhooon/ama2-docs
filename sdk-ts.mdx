@@ -29,6 +29,20 @@ const client = createClient({
 });
 ```
 
+## Runtime compatibility
+
+The SDK works across runtimes that expose a WHATWG-compatible `fetch`:
+
+- Node.js 18 and newer
+- Modern browsers and Cloudflare Workers
+- React Native (Expo SDK 55+ / RN 0.84+)
+
+When `fetch` returns a `Response` whose `body` stream is not exposed —
+historically the case on older React Native polyfills — the SDK falls back
+to `await response.text()` and enforces the response-size budget on the
+decoded UTF-8 byte length, so the same 1 MiB cap applies regardless of
+which path runs.
+
 ## Sending messages
 
 `sendMessage()` sends the body-level `client_message_id` separately from the
