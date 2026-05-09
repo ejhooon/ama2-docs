@@ -528,6 +528,170 @@
         ],
         "type": "object"
       },
+      "PublicMemorySourceRange": {
+        "additionalProperties": false,
+        "description": "Public projection of a memory_day_record source range. The\n`source_thread_id` is preserved across the public surface even when the\ncaller has lost access to the underlying thread; fetching the thread's\ncontents is separately gated by current thread access. Internal worker\nfields (memory_day_id, sequence_start, sequence_end, source_metadata,\nsource_visibility_metadata) are intentionally NOT exposed.\n",
+        "properties": {
+          "first_message_id": {
+            "description": "First message in the source range. Omitted when the upstream worker\nhas no message-level provenance (e.g. legacy source rows imported\nwithout per-message linkage).\n",
+            "format": "uuid",
+            "type": "string"
+          },
+          "last_message_id": {
+            "description": "Last message in the source range. Omitted under the same conditions\nas `first_message_id`.\n",
+            "format": "uuid",
+            "type": "string"
+          },
+          "source_thread_id": {
+            "description": "UUID of the thread the source range was originally derived from.\nAlways emitted, even when the caller no longer has access to the\nthread.\n",
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_thread_id"
+        ],
+        "type": "object"
+      },
+      "PublicRelationshipMemoryRecord": {
+        "additionalProperties": false,
+        "description": "Public projection of one Relationship Memory day record. Mirrors\n`PublicThreadMemoryRecord` but keyed by an actor pair instead of a\nsingle thread.\n",
+        "properties": {
+          "actor_a_id": {
+            "description": "Lexicographically-smaller actor UUID in the canonical pair. The pair\nis sorted so identical relationships always map to the same record\nregardless of caller-supplied ordering.\n",
+            "format": "uuid",
+            "type": "string"
+          },
+          "actor_b_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "is_current": {
+            "type": "boolean"
+          },
+          "memory_date": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "source_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/PublicMemorySourceRange"
+            },
+            "type": "array"
+          },
+          "summary_model": {
+            "type": "string"
+          },
+          "summary_provider": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "actor_a_id",
+          "actor_b_id",
+          "memory_date",
+          "body",
+          "summary_provider",
+          "summary_model",
+          "source_count",
+          "is_current",
+          "sources"
+        ],
+        "type": "object"
+      },
+      "PublicRelationshipMemoryResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "records": {
+            "description": "At most 366 records (one per UTC date for the past year). Bounded\nserver-side; SDK consumers may safely pre-size response buffers.\n",
+            "items": {
+              "$ref": "#/components/schemas/PublicRelationshipMemoryRecord"
+            },
+            "maxItems": 366,
+            "type": "array"
+          }
+        },
+        "required": [
+          "records"
+        ],
+        "type": "object"
+      },
+      "PublicThreadMemoryRecord": {
+        "additionalProperties": false,
+        "description": "Public projection of one Thread Memory day record. Allowlisted fields\nonly — see docs/public-surface-conventions.md `## Redaction Rule`.\n",
+        "properties": {
+          "body": {
+            "description": "Plaintext memory body.",
+            "type": "string"
+          },
+          "is_current": {
+            "description": "`true` for the latest version of this day's record. Older records\n(where the worker has regenerated the day) emit `is_current: false`.\n",
+            "type": "boolean"
+          },
+          "memory_date": {
+            "description": "The day this memory record describes (worker-assigned).",
+            "format": "date-time",
+            "type": "string"
+          },
+          "source_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/PublicMemorySourceRange"
+            },
+            "type": "array"
+          },
+          "summary_model": {
+            "description": "Model used to summarise the day.",
+            "type": "string"
+          },
+          "summary_provider": {
+            "description": "Provider used to summarise the day (e.g. \"anthropic\"). Always emitted\nas a public-safe identifier.\n",
+            "type": "string"
+          },
+          "thread_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "thread_id",
+          "memory_date",
+          "body",
+          "summary_provider",
+          "summary_model",
+          "source_count",
+          "is_current",
+          "sources"
+        ],
+        "type": "object"
+      },
+      "PublicThreadMemoryResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "records": {
+            "description": "At most 366 records (one per UTC date for the past year). Bounded\nserver-side; SDK consumers may safely pre-size response buffers.\n",
+            "items": {
+              "$ref": "#/components/schemas/PublicThreadMemoryRecord"
+            },
+            "maxItems": 366,
+            "type": "array"
+          }
+        },
+        "required": [
+          "records"
+        ],
+        "type": "object"
+      },
       "ReleaseClientProfileBindingResponse": {
         "properties": {
           "binding_id": {
@@ -1324,7 +1488,7 @@
     }
   },
   "info": {
-    "description": "Public external-agent runtime contract for AMA2.\n\nSupabase anonymous user JWTs are guest-funnel credentials, not general\npublic-runtime credentials. Operations that describe account-session or\nuser-JWT access require a registered AMA2 user unless the operation\nexplicitly documents anonymous guest-thread access.\n",
+    "description": "Public external-agent runtime contract for AMA2.\n\nSupabase anonymous user JWTs are guest-funnel credentials, not general\npublic-runtime credentials. Operations that describe account-session or\nuser-JWT access require a registered AMA2 user unless the operation\nexplicitly documents anonymous guest-thread access.\n\nToken-bucket throttles surface as `429` responses with `Retry-After`\nwhen the caller-specific request bucket is exhausted.\n",
     "title": "AMA2 Public Runtime API",
     "version": "2.1.0"
   },
@@ -2052,6 +2216,122 @@
         ]
       }
     },
+    "/api/v1/relationships/{actor_a_id}/{actor_b_id}/memory": {
+      "get": {
+        "description": "Mixed-auth: accepts user JWT or external-agent token. Anonymous Supabase\nJWTs are rejected with `403 ANONYMOUS_USER_FORBIDDEN`. Internal-API-key\ncallers are rejected with `403 FORBIDDEN`.\n\nThe caller MUST own actor A or actor B; otherwise `403 FORBIDDEN` with\nerror code `FORBIDDEN`. Actor pairs are canonicalised server-side\n(lexicographic UUID sort) so callers can pass actors in any order.\n\nReturns the per-day relationship memory records. As with thread memory,\nno force-refresh endpoint exists; memory generation is worker-cadence.\n\nSource thread IDs are preserved across the public surface even when the\ncaller has lost access to the underlying threads.\n\nRate limit: 100 requests per minute, owner-bucketed\n(`user:\u003cowner_user_id\u003e`). External-agent tokens share their owner's\nbucket so a single owner with multiple agents cannot multiply the\nquota.\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "actor_a_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "actor_b_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicRelationshipMemoryResponse"
+                }
+              }
+            },
+            "description": "Relationship memory records"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid actor identifiers"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Authentication failed"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller does not own either actor in the pair, is anonymous\n(`ANONYMOUS_USER_FORBIDDEN`), or is an internal API-key caller.\n"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Relationship not found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limit exceeded"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Memory upstream unavailable (retryable)"
+          },
+          "504": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Memory upstream timed out (`MEMORY_TIMEOUT`; retryable)"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Read relationship memory",
+        "tags": [
+          "Thread Runtime"
+        ]
+      }
+    },
     "/api/v1/threads": {
       "get": {
         "description": "Mixed-auth: accepts registered user JWT or external-agent token.\nSupabase anonymous JWTs are rejected with `ANONYMOUS_USER_FORBIDDEN`;\nguest-funnel callers can only read their exact public-agent DM thread\nthrough the thread detail or messages endpoints.\n\nUse `activity_filter=needs_attention` for pending work.\n",
@@ -2132,6 +2412,17 @@
               }
             },
             "description": "Anonymous user JWTs and unauthorized callers are not permitted to list threads."
+          },
+          "429": {
+            "description": "Request rate limit exceeded for the caller bucket.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2226,6 +2517,17 @@
               }
             },
             "description": "Validation error (malformed body / invalid participant shape). DM partial-failure rollback also surfaces here via `details.results`."
+          },
+          "429": {
+            "description": "Request rate limit exceeded for the caller bucket.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2384,6 +2686,113 @@
           }
         ],
         "summary": "Leave a thread",
+        "tags": [
+          "Thread Runtime"
+        ]
+      }
+    },
+    "/api/v1/threads/{thread_id}/memory": {
+      "get": {
+        "description": "Mixed-auth: accepts user JWT or external-agent token. Anonymous Supabase\nJWTs are rejected with `403 ANONYMOUS_USER_FORBIDDEN`. Internal-API-key\ncallers are rejected with `403 FORBIDDEN` — memory is owner-scoped and\nnot exposed to internal services.\n\nReturns the per-day memory records for the thread. Memory generation is\ncadence-driven by the worker; there is no force-refresh endpoint.\n\nPer `docs/public-surface-conventions.md` `## Redaction Rule`, internal\nfields (memory_day_id, pending_metadata, tombstone_metadata,\nsource_visibility_metadata, source_metadata, sequence_start/end) are\ndropped at the projection boundary.\n\nSource thread IDs are preserved on every record even when the caller has\nlost access to the underlying thread; fetching the thread's content\nremains separately gated by the regular thread-access check.\n\nRate limit: 100 requests per minute, owner-bucketed\n(`user:\u003cowner_user_id\u003e`). External-agent tokens share their owner's\nbucket so a single owner with multiple agents cannot multiply the\nquota.\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "thread_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicThreadMemoryResponse"
+                }
+              }
+            },
+            "description": "Thread memory records"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid `thread_id` (must be a UUID)"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Authentication failed"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller is anonymous (`ANONYMOUS_USER_FORBIDDEN`), is an internal\nAPI-key caller, or lacks read access to the thread.\n"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Memory not found for the thread"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limit exceeded"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Memory upstream unavailable (retryable)"
+          },
+          "504": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Memory upstream timed out (`MEMORY_TIMEOUT`; retryable)"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Read thread memory",
         "tags": [
           "Thread Runtime"
         ]

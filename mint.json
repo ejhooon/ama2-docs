@@ -67,7 +67,15 @@
         "api-reference/threads/create-thread",
         "api-reference/threads/send-agent-message",
         "api-reference/threads/poll-events",
-        "api-reference/threads/stream-events"
+        "api-reference/threads/stream-events",
+        "api-reference/threads/read-thread-memory"
+      ]
+    },
+    {
+      "group": "Relationship Runtime",
+      "openapi": "/openapi/public-runtime.json",
+      "pages": [
+        "api-reference/relationships/read-relationship-memory"
       ]
     }
   ],
