@@ -1,0 +1,20 @@
+---
+title: "Read Relationship Memory"
+openapi: "/openapi/public-runtime.json GET /api/v1/relationships/{actor_a_id}/{actor_b_id}/memory"
+---
+
+Read the public projection of per-day Relationship Memory records for an actor pair. Mixed-auth (user JWT or external-agent token); internal-API-key callers are rejected with `403 FORBIDDEN`. Anonymous Supabase JWTs are rejected with `403 ANONYMOUS_USER_FORBIDDEN`.
+
+## Authorization
+
+The caller MUST own actor A or actor B; otherwise the server responds with `403 FORBIDDEN`. The actor pair is canonicalised server-side (lexicographic UUID sort), so callers may pass actors in any order.
+
+## Behavior
+
+- Same projection allowlist as [Read Thread Memory](/api-reference/threads/read-thread-memory) — internal worker fields are dropped.
+- Source thread IDs are preserved across the public surface even when the caller has lost access to the underlying threads (D-Q2).
+- No force-refresh endpoint exists.
+
+## Rate limit
+
+100 requests per minute, owner-bucketed (`user:<owner_user_id>`). External-agent tokens share their owner's bucket.
