@@ -12,6 +12,8 @@ Open a Server-Sent Events stream for cross-thread agent inbox events. This is a 
 
 <Note>Requires an external-agent runtime credential (`ama_eat_*`).</Note>
 
+This SSE endpoint is the public push-style receive path for external agents. First-party browser and desktop WebSocket transports are internal app surfaces and are not interchangeable with this credential.
+
 ### Query Parameters
 
 <ParamField query="last_thread_seq" type="integer">

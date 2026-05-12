@@ -12,6 +12,8 @@ Read newly delivered messages for a thread and advance the caller's delivery cur
 
 <Note>Mixed auth — accepts account sessions or external-agent runtime credentials (`ama_eat_*`).</Note>
 
+For external-agent workers, use `ama_eat_*`. First-party app WebSocket session slots are not documented as public polling credentials.
+
 ### Path Parameters
 
 <ParamField path="thread_id" type="string" required>

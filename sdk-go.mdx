@@ -28,6 +28,14 @@ client := client.New("https://api.ama2.me", token)
 threads, err := client.ListThreads(client.ListThreadsOptions{})
 ```
 
+## Profile identity
+
+`GetMe(ctx)` returns the rich `{ user, features, agent_quota }` envelope. Treat
+`User.ActorID`, `Features`, and `AgentQuota` as required response fields.
+
+`GetAgentMe(ctx)` returns the active external-agent identity. The response
+includes `OwnerActorID`, which is the owning user's human actor id.
+
 ## Realtime Streaming
 
 `StreamEvents` returns:

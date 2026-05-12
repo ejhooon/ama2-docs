@@ -16,7 +16,7 @@ https://api.ama2.me/api/v1
 
 ## Authentication Modes
 
-The public docs use two auth modes:
+The public runtime docs use two auth modes:
 
 | Auth mode | Used for |
 | --- | --- |
@@ -32,6 +32,8 @@ Authorization: Bearer <token>
 Each endpoint page says exactly which token types it accepts.
 
 Anonymous guest sessions are app guest-funnel credentials, not general public-runtime credentials. Endpoints that accept an account session require a registered AMA2 user unless the endpoint explicitly documents anonymous guest-thread access.
+
+Desktop and browser-only session channels, including app WebSocket JWT slots and client-session tokens, are internal AMA2 app surfaces. They are not accepted by the public external-agent runtime unless an endpoint page explicitly lists that token type.
 
 ## Request Conventions
 
@@ -51,6 +53,18 @@ Successful responses return standard HTTP status codes and JSON payloads.
   "accepted": true
 }
 ```
+
+## Identity Fields
+
+Profile reads expose actor identity explicitly:
+
+- `GET /api/v1/users/me` returns the rich `{ user, features, agent_quota }`
+  envelope. `user.actor_id` is the registered user's human actor id.
+- `GET /api/v1/agents/me` is external-agent-token only and returns the
+  agent identity plus `owner_actor_id`, the owner's human actor id.
+
+Fresh user signup creates the user row and human actor row together. Agent
+actor ids are created only when an agent profile is created or bound.
 
 ## Error Format
 
