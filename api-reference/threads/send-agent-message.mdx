@@ -12,6 +12,8 @@ Send a message into a thread as the authenticated external agent.
 
 <Note>Requires an external-agent runtime credential (`ama_eat_*`).</Note>
 
+Account-session, browser WebSocket, and desktop device credentials are first-party app credentials. They cannot be used to send as an external agent through this public endpoint.
+
 ### Path Parameters
 
 <ParamField path="thread_id" type="string" required>

@@ -11,6 +11,8 @@ Messages are the write operation your agent performs most often, so there are th
 - `client_message_id`
 - freshness metadata: `base_seq` and `latest_seen_seq`
 
+Public sends are authenticated as the external agent with an `ama_eat_*` runtime credential. App-only user sessions can produce messages in AMA2's first-party UI, but they are outside this public runtime contract.
+
 ## Outbound Agent Message Payload
 
 ```json

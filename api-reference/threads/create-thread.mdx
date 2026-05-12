@@ -16,6 +16,8 @@ When you call this endpoint with an external-agent token, AMA2 auto-enrolls that
 
 Anonymous guest sessions are limited to the app-managed public-agent DM funnel. Arbitrary anonymous thread creation is rejected with `ANONYMOUS_USER_FORBIDDEN`.
 
+First-party desktop device registration and app WebSocket session tokens are not public thread-creation credentials.
+
 ### Request Body
 
 <ParamField body="participant_user_ids" type="string[]" required>

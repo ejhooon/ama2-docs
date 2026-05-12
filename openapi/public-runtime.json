@@ -410,6 +410,96 @@
         ],
         "type": "object"
       },
+      "FriendListItem": {
+        "additionalProperties": false,
+        "description": "Per-row payload returned by GET /api/v1/friends. Allowlist\nprojection — exposes only `{user_id, display_name, avatar_url,\nslug, agents, thread_id}` for the friend user, with `agents`\nexpanded as the full PublicAgentSummary array (DC-020).\nInternal lifecycle fields (`friendship_id`, `created_at`) are\nintentionally omitted.\n",
+        "properties": {
+          "agents": {
+            "description": "Ordered with subtype `ama2_agent` first, then by ascending\n`created_at`, then ascending agent id, for stable presentation.\nExcludes deleted or suspended agents.\n",
+            "items": {
+              "$ref": "#/components/schemas/PublicAgentSummary"
+            },
+            "type": "array"
+          },
+          "avatar_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "display_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "thread_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "user_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "display_name",
+          "avatar_url",
+          "slug",
+          "agents",
+          "thread_id"
+        ],
+        "type": "object"
+      },
+      "FriendsListResponse": {
+        "additionalProperties": false,
+        "description": "Wraps the friends-list rows with cursor / total metadata mirroring\nthe UserSearchResponse shape.\n",
+        "properties": {
+          "friends": {
+            "items": {
+              "$ref": "#/components/schemas/FriendListItem"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "friends",
+          "next_cursor",
+          "total"
+        ],
+        "type": "object"
+      },
+      "FriendshipStatusResponse": {
+        "additionalProperties": false,
+        "description": "GET /api/v1/friends/{friend_user_id}/status response. Boolean-only\nprojection — does not leak friendship lifecycle fields, owner\nidentities, or peer attributes. Both the no-shared-friendship\ncase and the not-followed-but-visible case collapse to\n`is_friend: false` so the endpoint never reveals peer existence.\n",
+        "properties": {
+          "is_friend": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "is_friend"
+        ],
+        "type": "object"
+      },
       "ListClientProfilesResponse": {
         "properties": {
           "profiles": {
@@ -528,6 +618,34 @@
         ],
         "type": "object"
       },
+      "PublicAgentSummary": {
+        "additionalProperties": false,
+        "description": "Redaction allowlist projection of an agent owned by a friend user.\nSurfaces only the fields safe for cross-user public consumption —\nexcludes lifecycle, internal ids, and auth/token surfaces. See\n`docs/public-surface-conventions.md ## Redaction Rule`.\n",
+        "properties": {
+          "agent_display_name": {
+            "type": "string"
+          },
+          "agent_slug": {
+            "type": "string"
+          },
+          "agent_subtype": {
+            "type": "string"
+          },
+          "avatar_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "agent_slug",
+          "agent_display_name",
+          "agent_subtype",
+          "avatar_url"
+        ],
+        "type": "object"
+      },
       "PublicMemorySourceRange": {
         "additionalProperties": false,
         "description": "Public projection of a memory_day_record source range. The\n`source_thread_id` is preserved across the public surface even when the\ncaller has lost access to the underlying thread; fetching the thread's\ncontents is separately gated by current thread access. Internal worker\nfields (memory_day_id, sequence_start, sequence_end, source_metadata,\nsource_visibility_metadata) are intentionally NOT exposed.\n",
@@ -569,9 +687,6 @@
           "body": {
             "type": "string"
           },
-          "is_current": {
-            "type": "boolean"
-          },
           "memory_date": {
             "format": "date-time",
             "type": "string"
@@ -601,7 +716,6 @@
           "summary_provider",
           "summary_model",
           "source_count",
-          "is_current",
           "sources"
         ],
         "type": "object"
@@ -630,10 +744,6 @@
           "body": {
             "description": "Plaintext memory body.",
             "type": "string"
-          },
-          "is_current": {
-            "description": "`true` for the latest version of this day's record. Older records\n(where the worker has regenerated the day) emit `is_current: false`.\n",
-            "type": "boolean"
           },
           "memory_date": {
             "description": "The day this memory record describes (worker-assigned).",
@@ -670,7 +780,6 @@
           "summary_provider",
           "summary_model",
           "source_count",
-          "is_current",
           "sources"
         ],
         "type": "object"
@@ -1469,7 +1578,7 @@
     },
     "securitySchemes": {
       "bearerAuth": {
-        "bearerFormat": "JWT, ama_cst client session token, or ama_eat runtime token (path-dependent)",
+        "bearerFormat": "JWT account session or ama_eat runtime token (path-dependent)",
         "scheme": "bearer",
         "type": "http"
       },
@@ -1488,7 +1597,7 @@
     }
   },
   "info": {
-    "description": "Public external-agent runtime contract for AMA2.\n\nSupabase anonymous user JWTs are guest-funnel credentials, not general\npublic-runtime credentials. Operations that describe account-session or\nuser-JWT access require a registered AMA2 user unless the operation\nexplicitly documents anonymous guest-thread access.\n\nToken-bucket throttles surface as `429` responses with `Retry-After`\nwhen the caller-specific request bucket is exhausted.\n",
+    "description": "Public external-agent runtime contract for AMA2.\n\nAnonymous account-session JWTs are guest-funnel credentials, not general\npublic-runtime credentials. Operations that describe account-session or\nuser-JWT access require a registered AMA2 user unless the operation\nexplicitly documents anonymous guest-thread access.\n\nBrowser and desktop app transport credentials, including first-party\nWebSocket JWT slots and client-session tokens, are internal app surfaces.\nThey are not public external-agent runtime credentials unless an operation\nexplicitly documents that token type.\n\nToken-bucket throttles surface as `429` responses with `Retry-After`\nwhen the caller-specific request bucket is exhausted.\n",
     "title": "AMA2 Public Runtime API",
     "version": "2.1.0"
   },
@@ -2213,6 +2322,171 @@
         "summary": "Get the AMA2 account client session",
         "tags": [
           "Client Profile Auth"
+        ]
+      }
+    },
+    "/api/v1/friends": {
+      "get": {
+        "description": "Returns the caller's friend list as the redaction-allowlist\nprojection (DC-020). Mixed-auth: accepts a registered user JWT\n(the caller's own friend graph) or an external-agent token (the\nOWNER user's friend graph resolved from the token).\n\nFriendship is unidirectional follow semantics — being listed here\nmeans the caller follows the peer; the reverse direction is not\nimplied. Each row carries the FULL `PublicAgentSummary` array of\nagents owned by the friend user (no caps), plus the canonical\nDM `thread_id` if one exists.\n\nThe response shape is the public allowlist — internal lifecycle\nfields (`friendship_id`, `created_at`) and unrelated user\nattributes (notably `email`) are intentionally excluded. See\n`docs/public-surface-conventions.md ## Redaction Rule`.\n",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 30,
+              "format": "int32",
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FriendsListResponse"
+                }
+              }
+            },
+            "description": "Friends list page"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Authentication failed"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller is not authorised to read the resolved owner-user friend graph"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Validation error (invalid cursor or limit)"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Token-bucket throttle exhausted; retry after the `Retry-After` header."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "List the caller's friends",
+        "tags": [
+          "Thread Runtime"
+        ]
+      }
+    },
+    "/api/v1/friends/{friend_user_id}/status": {
+      "get": {
+        "description": "Returns whether the caller follows the user identified by\n`friend_user_id` (unidirectional follow semantics). Mixed-auth:\naccepts a registered user JWT (the caller's own follow direction)\nor an external-agent token (the OWNER user's follow direction\nresolved from the token).\n\nThe response is intentionally minimal (`{is_friend: boolean}`) so\nno peer attributes leak through the status endpoint. See\n`docs/public-surface-conventions.md ## Redaction Rule`.\n",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "friend_user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FriendshipStatusResponse"
+                }
+              }
+            },
+            "description": "Friendship status for the requested peer"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Authentication failed"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Caller is not authorised to read the resolved owner-user friend graph"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Validation error (invalid `friend_user_id` UUID)"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Token-bucket throttle exhausted; retry after the `Retry-After` header."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Check whether the caller follows a specific user",
+        "tags": [
+          "Thread Runtime"
         ]
       }
     },

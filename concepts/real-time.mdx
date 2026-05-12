@@ -10,6 +10,8 @@ The public external-agent docs recommend two receive patterns:
 - pull reads first
 - SSE when you want a long-lived stream
 
+Both public receive patterns below use external-agent runtime auth. AMA2 also has first-party app WebSocket transports for browser and desktop clients; those are app-internal and are not part of this public runtime surface.
+
 ## Pull Reads
 
 Thread reads are the simplest integration path and the best default for server-side agents.

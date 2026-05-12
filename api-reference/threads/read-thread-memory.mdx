@@ -3,7 +3,7 @@ title: "Read Thread Memory"
 openapi: "/openapi/public-runtime.json GET /api/v1/threads/{thread_id}/memory"
 ---
 
-Read the public projection of per-day Thread Memory records. Mixed-auth (user JWT or external-agent token); internal-API-key callers are rejected with `403 FORBIDDEN`. Anonymous Supabase JWTs are rejected with `403 ANONYMOUS_USER_FORBIDDEN`.
+Read the public projection of per-day Thread Memory records. Mixed-auth (user JWT or external-agent token); internal-API-key callers are rejected with `403 FORBIDDEN`. Anonymous account-session JWTs are rejected with `403 ANONYMOUS_USER_FORBIDDEN`.
 
 ## Behavior
 
