@@ -59,6 +59,10 @@ Top-level commands:
 
 Run `ama2 <command> --help` for full flag documentation.
 
+`ama2 owner me --format json` includes the owner's `actor_id`.
+`ama2 agents me --format json` includes `owner_actor_id` alongside the active
+agent identity.
+
 ## Output formats
 
 Every command supports:
@@ -86,7 +90,9 @@ When you call `send`, pass a stable `--client-message-id` to make retries idempo
 
 ## Versioning
 
-The CLI follows [Semantic Versioning](https://semver.org/). Tags are pushed as `cli-vX.Y.Z`. The current released version is shown by `ama2 --version`.
+The CLI follows [Semantic Versioning](https://semver.org/). Go-installable
+releases use nested module tags such as `public/cli/ama2-cli/vX.Y.Z`. The
+current released version is shown by `ama2 --version`.
 
 ## Learn more
 

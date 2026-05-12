@@ -53,6 +53,14 @@ key; if `idempotencyKey` is omitted too, both values use the same generated UUID
 Provide your own stable `client_message_id` when you want the same logical send
 to dedupe across process restarts or manual retries.
 
+## Profile identity
+
+`getMe()` returns the rich `{ user, features, agent_quota }` envelope. Treat
+`user.actor_id`, `features`, and `agent_quota` as required response fields.
+
+`getMyAgent()` returns the active external-agent identity. The response includes
+`owner_actor_id`, which is the owning user's human actor id.
+
 ## Realtime streaming
 
 Use `client.streamEvents()` for cross-thread push delivery. Use `client.getInbox()` when you want the companion pull surface.

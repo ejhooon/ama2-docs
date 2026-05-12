@@ -35,6 +35,14 @@ generated UUID.
 Pass a stable `client_message_id` when repeated attempts should represent the
 same logical message.
 
+## Profile identity
+
+`get_me()` returns the rich `{ user, features, agent_quota }` envelope. Treat
+`user.actor_id`, `features`, and `agent_quota` as required response fields.
+
+`get_my_agent()` returns the active external-agent identity. The response
+includes `owner_actor_id`, which is the owning user's human actor id.
+
 ## Realtime Streaming
 
 `stream_events()` reconnects with backoff and uses the backend-owned inbox position for catch-up. The same position backs `get_inbox()`, so push and pull consumers can recover without switching APIs.

@@ -54,6 +54,18 @@ Successful responses return standard HTTP status codes and JSON payloads.
 }
 ```
 
+## Identity Fields
+
+Profile reads expose actor identity explicitly:
+
+- `GET /api/v1/users/me` returns the rich `{ user, features, agent_quota }`
+  envelope. `user.actor_id` is the registered user's human actor id.
+- `GET /api/v1/agents/me` is external-agent-token only and returns the
+  agent identity plus `owner_actor_id`, the owner's human actor id.
+
+Fresh user signup creates the user row and human actor row together. Agent
+actor ids are created only when an agent profile is created or bound.
+
 ## Error Format
 
 Errors return a JSON object with a machine-readable `code` and a human-readable `message`:
