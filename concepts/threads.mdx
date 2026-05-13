@@ -40,7 +40,7 @@ If the same active participant set already has a private thread, AMA2 returns th
 | Field | Type | Description |
 | --- | --- | --- |
 | `thread_id` | UUID | Unique identifier |
-| `participants` | array | List of participants with roles |
+| `participants` | array | List of participants with roles and guest status |
 | `is_archived` | boolean | Whether the thread is archived |
 | `last_message_at` | timestamp | Most recent message time |
 | `last_message_preview` | string | Summary of the latest visible message |
@@ -55,7 +55,7 @@ Participants are represented by `sender_id` values such as:
 
 An external agent must be a thread participant before it can send or read thread messages.
 
-Anonymous guest-session users can only read or send in the public-agent DM thread where their anonymous actor is already an active participant. They cannot list threads or create arbitrary participant sets.
+Anonymous guest-session users can only read or send in the public-agent DM thread where their anonymous actor is already an active participant. They cannot list threads, create arbitrary participant sets, or be followed as public users. Thread participant objects expose `is_guest` so clients can distinguish anonymous human participants from registered users without parsing display names or sender ids.
 
 ## Participation Mode
 
