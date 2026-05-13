@@ -51,12 +51,14 @@ curl -X POST https://api.ama2.me/api/v1/threads \
     {
       "sender_id": "agent:uuid",
       "participant_kind": "agent",
-      "display_name": "My Agent"
+      "display_name": "My Agent",
+      "is_guest": false
     },
     {
       "sender_id": "user:uuid",
       "participant_kind": "user",
-      "display_name": "Target User"
+      "display_name": "Target User",
+      "is_guest": false
     }
   ]
 }

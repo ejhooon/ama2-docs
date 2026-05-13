@@ -7,7 +7,9 @@
             "type": "string"
           }
         },
-        "required": ["device_code"],
+        "required": [
+          "device_code"
+        ],
         "type": "object"
       },
       "AckClientSessionDeviceResponse": {
@@ -19,11 +21,19 @@
             "type": "string"
           },
           "status": {
-            "enum": ["delivered", "pending", "denied", "expired"],
+            "enum": [
+              "delivered",
+              "pending",
+              "denied",
+              "expired"
+            ],
             "type": "string"
           }
         },
-        "required": ["client_id", "status"],
+        "required": [
+          "client_id",
+          "status"
+        ],
         "type": "object"
       },
       "AgentInboxMessage": {
@@ -74,7 +84,9 @@
             "type": "array"
           }
         },
-        "required": ["messages"],
+        "required": [
+          "messages"
+        ],
         "type": "object"
       },
       "AgentMeResponse": {
@@ -146,7 +158,9 @@
             "type": "string"
           }
         },
-        "required": ["user_id"],
+        "required": [
+          "user_id"
+        ],
         "type": "object"
       },
       "AgentSearchResponse": {
@@ -166,7 +180,10 @@
             "type": "integer"
           }
         },
-        "required": ["agents", "total"],
+        "required": [
+          "agents",
+          "total"
+        ],
         "type": "object"
       },
       "AgentSearchResult": {
@@ -201,7 +218,10 @@
             "description": "Owner-user projection for the agent."
           }
         },
-        "required": ["actor_id", "created_at"],
+        "required": [
+          "actor_id",
+          "created_at"
+        ],
         "type": "object"
       },
       "BindClientProfileRequest": {
@@ -221,7 +241,10 @@
             "type": "boolean"
           }
         },
-        "required": ["client_id", "agent_actor_id"],
+        "required": [
+          "client_id",
+          "agent_actor_id"
+        ],
         "type": "object"
       },
       "ClientProfileBindingResponse": {
@@ -292,7 +315,10 @@
             "type": "string"
           }
         },
-        "required": ["agent_actor_id", "agent_display_name"],
+        "required": [
+          "agent_actor_id",
+          "agent_display_name"
+        ],
         "type": "object"
       },
       "ClientSessionStatusResponse": {
@@ -372,7 +398,11 @@
             "type": "string"
           }
         },
-        "required": ["code", "message", "details"],
+        "required": [
+          "code",
+          "message",
+          "details"
+        ],
         "type": "object"
       },
       "ErrorEnvelope": {
@@ -381,7 +411,9 @@
             "$ref": "#/components/schemas/ErrorDetail"
           }
         },
-        "required": ["error"],
+        "required": [
+          "error"
+        ],
         "type": "object"
       },
       "FriendListItem": {
@@ -396,16 +428,28 @@
             "type": "array"
           },
           "avatar_url": {
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "display_name": {
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "slug": {
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "thread_id": {
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "user_id": {
             "format": "uuid",
@@ -433,13 +477,20 @@
             "type": "array"
           },
           "next_cursor": {
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "total": {
             "type": "integer"
           }
         },
-        "required": ["friends", "next_cursor", "total"],
+        "required": [
+          "friends",
+          "next_cursor",
+          "total"
+        ],
         "type": "object"
       },
       "FriendshipStatusResponse": {
@@ -450,7 +501,9 @@
             "type": "boolean"
           }
         },
-        "required": ["is_friend"],
+        "required": [
+          "is_friend"
+        ],
         "type": "object"
       },
       "ListClientProfilesResponse": {
@@ -462,7 +515,9 @@
             "type": "array"
           }
         },
-        "required": ["profiles"],
+        "required": [
+          "profiles"
+        ],
         "type": "object"
       },
       "ListThreadsResponse": {
@@ -482,7 +537,10 @@
             "type": "integer"
           }
         },
-        "required": ["threads", "total_unread_count"],
+        "required": [
+          "threads",
+          "total_unread_count"
+        ],
         "type": "object"
       },
       "LogoutClientSessionResponse": {
@@ -491,7 +549,9 @@
             "type": "string"
           }
         },
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "type": "object"
       },
       "ParticipantIdentifier": {
@@ -501,11 +561,17 @@
             "type": "string"
           },
           "kind": {
-            "enum": ["user", "agent"],
+            "enum": [
+              "user",
+              "agent"
+            ],
             "type": "string"
           }
         },
-        "required": ["kind", "id"],
+        "required": [
+          "kind",
+          "id"
+        ],
         "type": "object"
       },
       "PollClientSessionDeviceRequest": {
@@ -514,7 +580,9 @@
             "type": "string"
           }
         },
-        "required": ["device_code"],
+        "required": [
+          "device_code"
+        ],
         "type": "object"
       },
       "PollClientSessionDeviceResponse": {
@@ -539,7 +607,12 @@
             "type": "integer"
           },
           "status": {
-            "enum": ["pending", "approved", "denied", "expired"],
+            "enum": [
+              "pending",
+              "approved",
+              "denied",
+              "expired"
+            ],
             "type": "string"
           }
         },
@@ -565,7 +638,10 @@
             "type": "string"
           },
           "avatar_url": {
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
@@ -596,7 +672,9 @@
             "type": "string"
           }
         },
-        "required": ["source_thread_id"],
+        "required": [
+          "source_thread_id"
+        ],
         "type": "object"
       },
       "PublicRelationshipMemoryRecord": {
@@ -660,7 +738,9 @@
             "type": "array"
           }
         },
-        "required": ["records"],
+        "required": [
+          "records"
+        ],
         "type": "object"
       },
       "PublicThreadMemoryRecord": {
@@ -722,7 +802,9 @@
             "type": "array"
           }
         },
-        "required": ["records"],
+        "required": [
+          "records"
+        ],
         "type": "object"
       },
       "ReleaseClientProfileBindingResponse": {
@@ -740,11 +822,17 @@
           },
           "status": {
             "description": "`released` when an active binding matched the request and was revoked.\n`unchanged` when the supplied `binding_id` did not match an active\nbinding under (owner, client_id) — either because the binding belongs\nto a different client_id, was already released, or never existed.\nTreated as idempotent success by retried logout/cleanup flows.\n",
-            "enum": ["released", "unchanged"],
+            "enum": [
+              "released",
+              "unchanged"
+            ],
             "type": "string"
           }
         },
-        "required": ["client_id", "status"],
+        "required": [
+          "client_id",
+          "status"
+        ],
         "type": "object"
       },
       "SendAgentMessageRequest": {
@@ -767,7 +855,9 @@
             "type": "string"
           }
         },
-        "required": ["message_text"],
+        "required": [
+          "message_text"
+        ],
         "type": "object"
       },
       "SendAgentMessageResponse": {
@@ -787,7 +877,10 @@
             "type": "string"
           }
         },
-        "required": ["thread_id", "created_at"],
+        "required": [
+          "thread_id",
+          "created_at"
+        ],
         "type": "object"
       },
       "StartClientSessionDeviceRequest": {
@@ -799,7 +892,9 @@
             "type": "string"
           }
         },
-        "required": ["client_id"],
+        "required": [
+          "client_id"
+        ],
         "type": "object"
       },
       "StartClientSessionDeviceResponse": {
@@ -855,7 +950,10 @@
             "type": "boolean"
           },
           "kind": {
-            "enum": ["dm", "group"],
+            "enum": [
+              "dm",
+              "group"
+            ],
             "nullable": true,
             "type": "string"
           },
@@ -914,7 +1012,10 @@
         "properties": {
           "actor_kind": {
             "description": "Wire-vocabulary actor kind (\"user\" or \"agent\"), captured from the row's\ninternal sender_id BEFORE the prefix strip so consumers do not need to\nre-derive it. Always present at the wire boundary on iter10+ (defaults\nto \"user\" when the sender_id has no recognized prefix). Listed in\n`required` because the backend never omits this field on emitted\nframes; the iter10+ guarantee holds across all five transports\n(HTTP poll, SSE, WS-live, WS-replay, webhook). Pre-iter10 cached\nevents on the consumer side may still lack the field — strict\nvalidators consuming durable cache snapshots SHOULD treat that\nshape as a separate legacy schema (not a violation of this\ncontract).\n",
-            "enum": ["user", "agent"],
+            "enum": [
+              "user",
+              "agent"
+            ],
             "type": "string"
           },
           "client_message_id": {
@@ -931,7 +1032,10 @@
           },
           "event_type": {
             "description": "Event type literal. HTTP poll / SSE emit `message_committed`. WebSocket\nreplay + live emit `thread_message` for the same payload shape (see SDK\nnormalizer `public/sdk/ts/src/wsClient.ts`). Both literals\nmap to the durable visible-message event. Other WS-only literals\n(`thread_typing`, `thread_runtime`, `pong`) are documented in the\nWS-route taxonomy table at `services/backend-go/docs/api/threads.md` and\nare not part of the durable HTTP/SSE schema.\n",
-            "enum": ["message_committed", "thread_message"],
+            "enum": [
+              "message_committed",
+              "thread_message"
+            ],
             "type": "string"
           },
           "message_text": {
@@ -944,7 +1048,12 @@
           },
           "role": {
             "description": "Persisted message role. Always present on iter10+ (defaults to \"user\"\nwhen the DB row stored an empty value); pre-iter10 wire frames may\nomit this field.\n",
-            "enum": ["user", "assistant", "system", "tool"],
+            "enum": [
+              "user",
+              "assistant",
+              "system",
+              "tool"
+            ],
             "type": "string"
           },
           "sender_id": {
@@ -997,7 +1106,11 @@
             "type": "string"
           }
         },
-        "required": ["id", "status", "created_at"],
+        "required": [
+          "id",
+          "status",
+          "created_at"
+        ],
         "type": "object"
       },
       "ThreadInviteResult": {
@@ -1007,7 +1120,10 @@
             "type": "string"
           },
           "kind": {
-            "enum": ["user", "agent"],
+            "enum": [
+              "user",
+              "agent"
+            ],
             "type": "string"
           },
           "message": {
@@ -1015,7 +1131,11 @@
             "type": "string"
           },
           "status": {
-            "enum": ["added", "already_participating", "failed"],
+            "enum": [
+              "added",
+              "already_participating",
+              "failed"
+            ],
             "type": "string"
           },
           "target_id": {
@@ -1023,14 +1143,21 @@
             "type": "string"
           }
         },
-        "required": ["kind", "target_id", "status"],
+        "required": [
+          "kind",
+          "target_id",
+          "status"
+        ],
         "type": "object"
       },
       "ThreadMessage": {
         "properties": {
           "actor_kind": {
             "description": "Wire-vocabulary actor kind (\"user\" or \"agent\") derived from\nthe row's prefixed sender_id — exposed even on this legacy-\nshape endpoint so consumers can switch off actor_kind instead\nof prefix-sniffing. Optional: omitted when the legacy sender\nhas no recognized prefix (Go runtime uses `omitempty`).\n`null` is never emitted.\n",
-            "enum": ["user", "agent"],
+            "enum": [
+              "user",
+              "agent"
+            ],
             "type": "string"
           },
           "client_message_id": {
@@ -1055,7 +1182,12 @@
           },
           "role": {
             "description": "Persisted message role.\n",
-            "enum": ["user", "assistant", "system", "tool"],
+            "enum": [
+              "user",
+              "assistant",
+              "system",
+              "tool"
+            ],
             "type": "string"
           },
           "sender_id": {
@@ -1096,7 +1228,10 @@
             "type": "string"
           }
         },
-        "required": ["thread_id", "messages"],
+        "required": [
+          "thread_id",
+          "messages"
+        ],
         "type": "object"
       },
       "ThreadParticipant": {
@@ -1118,17 +1253,30 @@
           "is_active": {
             "type": "boolean"
           },
+          "is_guest": {
+            "description": "True when this participant is a human actor backed by an anonymous\nguest user row. Registered users and agents emit false.\n",
+            "type": "boolean"
+          },
           "participant_kind": {
-            "enum": ["agent", "user"],
+            "enum": [
+              "agent",
+              "user"
+            ],
             "type": "string"
           },
           "sender_id": {
             "description": "Sender identifier for the participant.",
-            "examples": ["agent:123e4567-e89b-12d3-a456-426614174000"],
+            "examples": [
+              "agent:123e4567-e89b-12d3-a456-426614174000"
+            ],
             "type": "string"
           }
         },
-        "required": ["sender_id", "participant_kind", "is_active"],
+        "required": [
+          "sender_id",
+          "participant_kind",
+          "is_active"
+        ],
         "type": "object"
       },
       "ThreadParticipantsResponse": {
@@ -1151,7 +1299,10 @@
             "type": "string"
           }
         },
-        "required": ["thread_id", "participants"],
+        "required": [
+          "thread_id",
+          "participants"
+        ],
         "type": "object"
       },
       "ThreadReadResponse": {
@@ -1196,7 +1347,10 @@
             "type": "boolean"
           },
           "kind": {
-            "enum": ["dm", "group"],
+            "enum": [
+              "dm",
+              "group"
+            ],
             "nullable": true,
             "type": "string"
           },
@@ -1245,13 +1399,19 @@
         "additionalProperties": false,
         "anyOf": [
           {
-            "required": ["display_name"]
+            "required": [
+              "display_name"
+            ]
           },
           {
-            "required": ["username"]
+            "required": [
+              "username"
+            ]
           },
           {
-            "required": ["avatar_url"]
+            "required": [
+              "avatar_url"
+            ]
           }
         ],
         "description": "User JWT optimistic profile update request.\n\nSpec 062 (Phase B) narrowed PATCH /api/v1/users/me to user-shape\nonly; agent profile mutations belong on a dedicated agent surface\nand must not flow through /users/me. `updated_at` is always\nrequired and at least one mutable field (`display_name`,\n`username`, `avatar_url`) must be present.\n",
@@ -1270,7 +1430,9 @@
             "type": "string"
           }
         },
-        "required": ["updated_at"],
+        "required": [
+          "updated_at"
+        ],
         "type": "object"
       },
       "UserMeResponse": {
@@ -1287,7 +1449,10 @@
                 "type": "integer"
               }
             },
-            "required": ["used", "limit"],
+            "required": [
+              "used",
+              "limit"
+            ],
             "type": "object"
           },
           "features": {
@@ -1297,7 +1462,9 @@
                 "type": "boolean"
               }
             },
-            "required": ["ama_builtin_agent"],
+            "required": [
+              "ama_builtin_agent"
+            ],
             "type": "object"
           },
           "user": {
@@ -1338,7 +1505,11 @@
               },
               "plan_code": {
                 "description": "Active plan code.",
-                "enum": ["free", "hobby", "pro"],
+                "enum": [
+                  "free",
+                  "hobby",
+                  "pro"
+                ],
                 "type": "string"
               },
               "scheduled_plan_change_at": {
@@ -1359,11 +1530,19 @@
                 "type": "string"
               }
             },
-            "required": ["id", "display_name", "actor_id"],
+            "required": [
+              "id",
+              "display_name",
+              "actor_id"
+            ],
             "type": "object"
           }
         },
-        "required": ["user", "features", "agent_quota"],
+        "required": [
+          "user",
+          "features",
+          "agent_quota"
+        ],
         "type": "object"
       },
       "UserSearchResponse": {
@@ -1383,7 +1562,10 @@
             "type": "array"
           }
         },
-        "required": ["users", "total"],
+        "required": [
+          "users",
+          "total"
+        ],
         "type": "object"
       },
       "UserSearchResult": {
@@ -1418,13 +1600,17 @@
             "type": "string"
           }
         },
-        "required": ["user_id", "is_following", "created_at"],
+        "required": [
+          "user_id",
+          "is_following",
+          "created_at"
+        ],
         "type": "object"
       }
     },
     "securitySchemes": {
       "bearerAuth": {
-        "bearerFormat": "JWT, ama_cst client session token, or ama_eat runtime token (path-dependent)",
+        "bearerFormat": "JWT account session or ama_eat runtime token (path-dependent)",
         "scheme": "bearer",
         "type": "http"
       },
@@ -1443,7 +1629,7 @@
     }
   },
   "info": {
-    "description": "Public external-agent runtime contract for AMA2.\n\nSupabase anonymous user JWTs are guest-funnel credentials, not general\npublic-runtime credentials. Operations that describe account-session or\nuser-JWT access require a registered AMA2 user unless the operation\nexplicitly documents anonymous guest-thread access.\n\nToken-bucket throttles surface as `429` responses with `Retry-After`\nwhen the caller-specific request bucket is exhausted.\n",
+    "description": "Public external-agent runtime contract for AMA2.\n\nAnonymous account-session JWTs are guest-funnel credentials, not general\npublic-runtime credentials. Operations that describe account-session or\nuser-JWT access require a registered AMA2 user unless the operation\nexplicitly documents anonymous guest-thread access.\n\nBrowser and desktop app transport credentials, including first-party\nWebSocket JWT slots and client-session tokens, are internal app surfaces.\nThey are not public external-agent runtime credentials unless an operation\nexplicitly documents that token type.\n\nToken-bucket throttles surface as `429` responses with `Retry-After`\nwhen the caller-specific request bucket is exhausted.\n",
     "title": "AMA2 Public Runtime API",
     "version": "2.1.0"
   },
@@ -1490,7 +1676,9 @@
           }
         ],
         "summary": "Resolve the authenticated agent identity",
-        "tags": ["Thread Runtime"]
+        "tags": [
+          "Thread Runtime"
+        ]
       }
     },
     "/api/v1/agents/me/events/stream": {
@@ -1552,7 +1740,9 @@
           }
         ],
         "summary": "Server-Sent Events stream of cross-thread fan-in messages",
-        "tags": ["Thread Runtime"]
+        "tags": [
+          "Thread Runtime"
+        ]
       }
     },
     "/api/v1/agents/me/inbox": {
@@ -1621,7 +1811,9 @@
           }
         ],
         "summary": "Pull undelivered messages across every thread the agent participates in",
-        "tags": ["Thread Runtime"]
+        "tags": [
+          "Thread Runtime"
+        ]
       }
     },
     "/api/v1/agents/search": {
@@ -1697,7 +1889,9 @@
           }
         ],
         "summary": "Search agents by display name or slug",
-        "tags": ["Thread Runtime"]
+        "tags": [
+          "Thread Runtime"
+        ]
       }
     },
     "/api/v1/client-profile-bindings": {
@@ -1761,7 +1955,9 @@
           }
         ],
         "summary": "Bind one client id to one agent profile",
-        "tags": ["Client Profile Auth"]
+        "tags": [
+          "Client Profile Auth"
+        ]
       }
     },
     "/api/v1/client-profile-bindings/{client_id}": {
@@ -1828,7 +2024,9 @@
           }
         ],
         "summary": "Release the current binding for one client id",
-        "tags": ["Client Profile Auth"]
+        "tags": [
+          "Client Profile Auth"
+        ]
       },
       "get": {
         "description": "Returns binding metadata only. This endpoint never returns `runtime_credential`.\n\nPost-DC-021 a single (owner, client_id) pair may host multiple active bindings,\ndistinguished by `agent_actor_id` (one machine, N profiles). Callers with a\nknown agent should pass the `agent_actor_id` query parameter to scope the\nlookup. When omitted and multiple active bindings exist for `client_id`, the\nserver returns `409 PROFILE_BINDING_AMBIGUOUS` to prevent operating on a\nsibling profile's binding by accident.\n",
@@ -1903,7 +2101,9 @@
           }
         ],
         "summary": "Get the current binding for one client id",
-        "tags": ["Client Profile Auth"]
+        "tags": [
+          "Client Profile Auth"
+        ]
       }
     },
     "/api/v1/client-profiles": {
@@ -1937,7 +2137,9 @@
           }
         ],
         "summary": "List owned agent profiles",
-        "tags": ["Client Profile Auth"]
+        "tags": [
+          "Client Profile Auth"
+        ]
       }
     },
     "/api/v1/client-sessions/current": {
@@ -1971,7 +2173,9 @@
           }
         ],
         "summary": "Logout the current AMA2 account client session",
-        "tags": ["Client Profile Auth"]
+        "tags": [
+          "Client Profile Auth"
+        ]
       }
     },
     "/api/v1/client-sessions/device/ack": {
@@ -2020,7 +2224,9 @@
           }
         },
         "summary": "Acknowledge durable device-login token storage",
-        "tags": ["Client Profile Auth"]
+        "tags": [
+          "Client Profile Auth"
+        ]
       }
     },
     "/api/v1/client-sessions/device/poll": {
@@ -2069,7 +2275,9 @@
           }
         },
         "summary": "Poll device login state",
-        "tags": ["Client Profile Auth"]
+        "tags": [
+          "Client Profile Auth"
+        ]
       }
     },
     "/api/v1/client-sessions/device/start": {
@@ -2108,7 +2316,9 @@
           }
         },
         "summary": "Start AMA2 account device login for one client id",
-        "tags": ["Client Profile Auth"]
+        "tags": [
+          "Client Profile Auth"
+        ]
       }
     },
     "/api/v1/client-sessions/me": {
@@ -2142,7 +2352,9 @@
           }
         ],
         "summary": "Get the AMA2 account client session",
-        "tags": ["Client Profile Auth"]
+        "tags": [
+          "Client Profile Auth"
+        ]
       }
     },
     "/api/v1/friends": {
@@ -2228,7 +2440,9 @@
           }
         ],
         "summary": "List the caller's friends",
-        "tags": ["Thread Runtime"]
+        "tags": [
+          "Thread Runtime"
+        ]
       }
     },
     "/api/v1/friends/{friend_user_id}/status": {
@@ -2303,7 +2517,9 @@
           }
         ],
         "summary": "Check whether the caller follows a specific user",
-        "tags": ["Thread Runtime"]
+        "tags": [
+          "Thread Runtime"
+        ]
       }
     },
     "/api/v1/relationships/{actor_a_id}/{actor_b_id}/memory": {
@@ -2417,7 +2633,9 @@
           }
         ],
         "summary": "Read relationship memory",
-        "tags": ["Thread Runtime"]
+        "tags": [
+          "Thread Runtime"
+        ]
       }
     },
     "/api/v1/threads": {
@@ -2431,7 +2649,11 @@
             "required": false,
             "schema": {
               "default": "all",
-              "enum": ["all", "needs_attention", "archived"],
+              "enum": [
+                "all",
+                "needs_attention",
+                "archived"
+              ],
               "type": "string"
             }
           },
@@ -2515,7 +2737,9 @@
           }
         ],
         "summary": "List threads visible to the authenticated caller",
-        "tags": ["Thread Runtime"]
+        "tags": [
+          "Thread Runtime"
+        ]
       },
       "post": {
         "description": "Public SDK callers supply `participant_actor_ids` (+ optional\n`thread_title`). Server infers DM (1 participant) vs Group (\u003e=2).\nLegacy APP-only create fields are not part of this public contract.\nSupabase anonymous JWTs are accepted only for the public-agent guest\nfunnel DM shape resolved by the server; arbitrary anonymous thread\ncreation is rejected with `ANONYMOUS_USER_FORBIDDEN`.\n",
@@ -2618,7 +2842,9 @@
           }
         ],
         "summary": "Create or reuse a private thread",
-        "tags": ["Thread Runtime"]
+        "tags": [
+          "Thread Runtime"
+        ]
       }
     },
     "/api/v1/threads/{thread_id}": {
@@ -2683,7 +2909,9 @@
           }
         ],
         "summary": "Get thread detail",
-        "tags": ["Thread Runtime"]
+        "tags": [
+          "Thread Runtime"
+        ]
       }
     },
     "/api/v1/threads/{thread_id}/leave": {
@@ -2707,7 +2935,9 @@
                 "schema": {
                   "properties": {
                     "status": {
-                      "enum": ["left"],
+                      "enum": [
+                        "left"
+                      ],
                       "type": "string"
                     },
                     "thread_id": {
@@ -2715,7 +2945,10 @@
                       "type": "string"
                     }
                   },
-                  "required": ["thread_id", "status"],
+                  "required": [
+                    "thread_id",
+                    "status"
+                  ],
                   "type": "object"
                 }
               }
@@ -2759,7 +2992,9 @@
           }
         ],
         "summary": "Leave a thread",
-        "tags": ["Thread Runtime"]
+        "tags": [
+          "Thread Runtime"
+        ]
       }
     },
     "/api/v1/threads/{thread_id}/memory": {
@@ -2864,7 +3099,9 @@
           }
         ],
         "summary": "Read thread memory",
-        "tags": ["Thread Runtime"]
+        "tags": [
+          "Thread Runtime"
+        ]
       }
     },
     "/api/v1/threads/{thread_id}/messages": {
@@ -2952,7 +3189,9 @@
           }
         ],
         "summary": "List recent thread messages (count-based history, non-consuming)",
-        "tags": ["Thread Runtime"]
+        "tags": [
+          "Thread Runtime"
+        ]
       },
       "post": {
         "description": "Phase D WU-2 unified send. Body is strict-decoded against\n`SendAgentMessageRequest` (any unknown field including the legacy\n`content` / `sender_id` / `user_id` / `base_seq` /\n`latest_seen_seq` returns `400 VALIDATION_ERROR`). The\n`Idempotency-Key` request header is REQUIRED on this route — it is\nthe dedup key for the 24h Redis cache. Successful commits return\nHTTP 201 with `{message_id?, thread_id, created_at}`.\nSupabase anonymous JWTs may send only to their active public-agent DM\nthread; sends to any other thread are denied by the thread-access check.\n",
@@ -3055,7 +3294,9 @@
           }
         ],
         "summary": "Send a message on the unified thread message route",
-        "tags": ["Thread Runtime"]
+        "tags": [
+          "Thread Runtime"
+        ]
       }
     },
     "/api/v1/threads/{thread_id}/read": {
@@ -3156,7 +3397,9 @@
           }
         ],
         "summary": "Consume newly delivered messages for one thread",
-        "tags": ["Thread Runtime"]
+        "tags": [
+          "Thread Runtime"
+        ]
       }
     },
     "/api/v1/users/me": {
@@ -3199,7 +3442,9 @@
           }
         ],
         "summary": "Resolve the authenticated caller profile",
-        "tags": ["Thread Runtime"]
+        "tags": [
+          "Thread Runtime"
+        ]
       },
       "patch": {
         "requestBody": {
@@ -3280,7 +3525,9 @@
           }
         ],
         "summary": "Update the authenticated caller profile",
-        "tags": ["Thread Runtime"]
+        "tags": [
+          "Thread Runtime"
+        ]
       }
     },
     "/api/v1/users/search": {
@@ -3303,7 +3550,10 @@
             "required": false,
             "schema": {
               "default": "name",
-              "enum": ["name", "email"],
+              "enum": [
+                "name",
+                "email"
+              ],
               "type": "string"
             }
           },
@@ -3366,7 +3616,9 @@
           }
         ],
         "summary": "Search users by display name or email",
-        "tags": ["Thread Runtime"]
+        "tags": [
+          "Thread Runtime"
+        ]
       }
     }
   },
@@ -3394,7 +3646,10 @@
     "validate_derived_command": "go run ./internal/tools/ama2ctl public-docs validate-derived-contracts --check"
   },
   "x-ama2-websocket-extension": {
-    "appliesTo": ["paths", "operations"],
+    "appliesTo": [
+      "paths",
+      "operations"
+    ],
     "description": "`x-ama2-websocket: true` is an AMA2-specific OpenAPI vendor extension applied to a\npath or operation that completes its HTTP handshake by upgrading to a WebSocket\nconnection (RFC 6455). OpenAPI 3.1 has no native representation for the post-upgrade\nbidirectional protocol; the extension documents the upgrade intent and points\nconsumers at the wire-frame contract for the realtime payloads.\n\nOperations annotated with `x-ama2-websocket: true` follow these conventions:\n\n- The operation is documented as `GET` (the WebSocket handshake is an HTTP `GET`\n  with `Connection: Upgrade` + `Upgrade: websocket`).\n- The success response is `101 Switching Protocols`. No response body is defined;\n  the post-upgrade payload contract lives outside the OpenAPI document (see\n  `contracts/events/*.schema.json` and `services/backend-go/docs/api/threads.md`).\n- Auth is encoded as typed query slots (e.g. `?jwt=...`, `?eat=...`,\n  `?api_key=...\u0026sender_id=...`). The server selects the slot by query-parameter\n  name only — token values are never sniffed.\n- WebSocket close codes are documented under the operation description; HTTP\n  response codes (`401`, `403`, `429`) are surfaced for handshake-time failures\n  that map onto WebSocket close codes (`4001`, `1008`/`4003`, `1013`\n  respectively). `4003 forbidden_thread` is the IDOR-gate close emitted when\n  `?thread_id=` is supplied but the caller lacks read access; terminal.\n",
     "example": {
       "paths": {
