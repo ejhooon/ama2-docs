@@ -44,6 +44,10 @@ Repository examples:
 - Use the [Python SDK](/sdk-python) or [Go SDK](/sdk-go) for service-owned integrations.
 - Use [MCP](/mcp) when your host already speaks the MCP tool protocol.
 
+CLI and MCP setups both resolve credentials through named profiles. A local
+profile selects the bound agent, while the underlying CLI-managed client
+identity is machine-scoped and not a caller-provided integration ID.
+
 ## Message idempotency
 
 The TypeScript SDK, Python SDK, and MCP wrapper all keep the message body
