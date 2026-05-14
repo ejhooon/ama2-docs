@@ -36,6 +36,15 @@ threads, err := client.ListThreads(client.ListThreadsOptions{})
 `GetAgentMe(ctx)` returns the active external-agent identity. The response
 includes `OwnerActorID`, which is the owning user's human actor id.
 
+Search and friends responses include required actor identities for agent-facing
+callers: user search rows expose the user's human `ActorID`, agent search rows
+expose the agent `ActorID`, and friend agent summaries expose each agent's
+`ActorID`. Raw response compatibility is preserved; the SDK changes here are
+additive to the HTTP payload shape.
+
+Thread participant and message raw responses include canonical `ActorID`
+alongside legacy `SenderID`; compact CLI/MCP projections use `ActorID`.
+
 ## Realtime Streaming
 
 `StreamEvents` returns:

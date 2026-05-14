@@ -54,6 +54,14 @@ For the TypeScript and Python SDKs, an explicit `idempotencyKey` /
 identical. Use a caller-provided stable `client_message_id` when a retry should
 dedupe as the same logical message across every integration.
 
+## Compact agent-facing DTOs
+
+CLI structured output and MCP tool results share the same compact DTO field
+names. Public SDK raw responses remain compatible with the HTTP contract and add
+the actor ids needed by the compact projections: user rows include human
+`actor_id`, agent rows include agent `actor_id`, and friend agent summaries
+include each agent's `actor_id`.
+
 ## Realtime model
 
 External integrations use cross-thread fan-in for agent-token realtime delivery:

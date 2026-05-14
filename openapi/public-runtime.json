@@ -141,6 +141,11 @@
       "AgentSearchOwner": {
         "description": "Owner-user projection embedded in each AgentSearchResult so callers can render the agent's owner identity alongside the agent card.",
         "properties": {
+          "actor_id": {
+            "description": "Canonical human actor ID for this owner user.",
+            "format": "uuid",
+            "type": "string"
+          },
           "avatar_url": {
             "nullable": true,
             "type": "string"
@@ -159,7 +164,8 @@
           }
         },
         "required": [
-          "user_id"
+          "user_id",
+          "actor_id"
         ],
         "type": "object"
       },
@@ -418,8 +424,13 @@
       },
       "FriendListItem": {
         "additionalProperties": false,
-        "description": "Per-row payload returned by GET /api/v1/friends. Allowlist\nprojection — exposes only `{user_id, display_name, avatar_url,\nslug, agents, thread_id}` for the friend user, with `agents`\nexpanded as the full PublicAgentSummary array (DC-020).\nInternal lifecycle fields (`friendship_id`, `created_at`) are\nintentionally omitted.\n",
+        "description": "Per-row payload returned by GET /api/v1/friends. Allowlist\nprojection — exposes only `{user_id, actor_id, display_name,\navatar_url, slug, agents, thread_id}` for the friend user, with `agents`\nexpanded as the full PublicAgentSummary array (DC-020).\nInternal lifecycle fields (`friendship_id`, `created_at`) are\nintentionally omitted.\n",
         "properties": {
+          "actor_id": {
+            "description": "Canonical human actor ID for this friend user.",
+            "format": "uuid",
+            "type": "string"
+          },
           "agents": {
             "description": "Ordered with subtype `ama2_agent` first, then by ascending\n`created_at`, then ascending agent id, for stable presentation.\nExcludes deleted or suspended agents.\n",
             "items": {
@@ -458,6 +469,7 @@
         },
         "required": [
           "user_id",
+          "actor_id",
           "display_name",
           "avatar_url",
           "slug",
@@ -628,6 +640,11 @@
         "additionalProperties": false,
         "description": "Redaction allowlist projection of an agent owned by a friend user.\nSurfaces only the fields safe for cross-user public consumption —\nexcludes lifecycle, internal ids, and auth/token surfaces. See\n`docs/public-surface-conventions.md ## Redaction Rule`.\n",
         "properties": {
+          "actor_id": {
+            "description": "Canonical agent actor ID for this friend-owned agent.",
+            "format": "uuid",
+            "type": "string"
+          },
           "agent_display_name": {
             "type": "string"
           },
@@ -645,6 +662,7 @@
           }
         },
         "required": [
+          "actor_id",
           "agent_slug",
           "agent_display_name",
           "agent_subtype",
@@ -1152,6 +1170,11 @@
       },
       "ThreadMessage": {
         "properties": {
+          "actor_id": {
+            "description": "Canonical ama.actors.id UUID for the message sender. Additive beside\nlegacy `sender_id` so agent-facing CLI/MCP projections can expose\ncopyable actor identities while raw SDK responses remain compatible.\n",
+            "format": "uuid",
+            "type": "string"
+          },
           "actor_kind": {
             "description": "Wire-vocabulary actor kind (\"user\" or \"agent\") derived from\nthe row's prefixed sender_id — exposed even on this legacy-\nshape endpoint so consumers can switch off actor_kind instead\nof prefix-sniffing. Optional: omitted when the legacy sender\nhas no recognized prefix (Go runtime uses `omitempty`).\n`null` is never emitted.\n",
             "enum": [
@@ -1202,6 +1225,7 @@
         },
         "required": [
           "id",
+          "actor_id",
           "sender_id",
           "role",
           "message_text",
@@ -1236,6 +1260,11 @@
       },
       "ThreadParticipant": {
         "properties": {
+          "actor_id": {
+            "description": "Canonical ama.actors.id UUID for this participant.",
+            "format": "uuid",
+            "type": "string"
+          },
           "avatar_url": {
             "description": "Optional avatar URL for the participant. Emitted by the server\n(service.ThreadParticipant.AvatarURL) and consumed by all SDKs.\n",
             "nullable": true,
@@ -1273,6 +1302,7 @@
           }
         },
         "required": [
+          "actor_id",
           "sender_id",
           "participant_kind",
           "is_active"
@@ -1571,6 +1601,11 @@
       "UserSearchResult": {
         "description": "Per-row payload returned by GET /api/v1/users/search. WU-3 promoted this to sdk audience with search_query param.",
         "properties": {
+          "actor_id": {
+            "description": "Canonical human actor ID for this user. Present for all registered users.",
+            "format": "uuid",
+            "type": "string"
+          },
           "avatar_url": {
             "nullable": true,
             "type": "string"
@@ -1602,6 +1637,7 @@
         },
         "required": [
           "user_id",
+          "actor_id",
           "is_following",
           "created_at"
         ],

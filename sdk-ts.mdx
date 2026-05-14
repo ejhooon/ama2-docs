@@ -61,6 +61,15 @@ to dedupe across process restarts or manual retries.
 `getMyAgent()` returns the active external-agent identity. The response includes
 `owner_actor_id`, which is the owning user's human actor id.
 
+Search and friends responses include required actor identities for agent-facing
+callers: user search rows expose the user's human `actor_id`, agent search rows
+expose the agent `actor_id`, and friend agent summaries expose each agent's
+`actor_id`. Raw response compatibility is preserved; the SDK changes here are
+additive to the HTTP payload shape.
+
+Thread participant and message raw responses include canonical `actor_id`
+alongside legacy `sender_id`; compact CLI/MCP projections use `actor_id`.
+
 ## Realtime streaming
 
 Use `client.streamEvents()` for cross-thread push delivery. Use `client.getInbox()` when you want the companion pull surface.
