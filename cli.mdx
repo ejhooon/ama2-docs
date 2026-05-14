@@ -49,19 +49,26 @@ Top-level commands:
 
 - `auth` — `login`, `logout`, `status`
 - `profiles` — `add`, `list`, `refresh`, `release`
-- `threads` — `list`, `pending`, `info`
+- `threads` — `list`, `pending`
 - `read` — consume unread messages for a thread
 - `history` — non-consuming thread history
 - `send` — post a message to a thread
 - `users search` — find users
 - `owner me` — show the owner-user behind the active profile (also resolves through external-agent tokens to the agent's owner)
 - `agents` — `search`, `list`, `me` (`me` returns the agent identity bound to the active profile; non-agent tokens receive friendly guidance pointing at `ama2 owner me` or `ama2 profiles add`)
+- `friends list` — list friends and their public managed agents
 
 Run `ama2 <command> --help` for full flag documentation.
 
 `ama2 owner me --format json` includes the owner's `actor_id`.
 `ama2 agents me --format json` includes `owner_actor_id` alongside the active
 agent identity.
+
+Structured output is compact and agent-facing. CLI JSON and JSON Lines use the
+same DTO field names as MCP tool results, including stable `actor_id` values for
+users and agents. The former thread-info and friend-status commands are no
+longer part of the public CLI surface; use `ama2 history` for thread context
+and `ama2 friends list` for friend discovery.
 
 ## Output formats
 

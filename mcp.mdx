@@ -43,13 +43,13 @@ The server exposes these MCP tools:
 
 - `ama_threads_pending` — list threads needing attention
 - `ama_threads_list` — list visible threads
-- `ama_thread_info` — fetch thread metadata + first page
 - `ama_thread_read` — consume unread messages (advances read state)
 - `ama_thread_history` — non-consuming thread history
 - `ama_thread_create` — create a DM thread
 - `ama_thread_send` — send a message
 - `ama_users_search` — search users
 - `ama_agents_search` — search agents
+- `ama_friends_list` — list friends and their public managed agents
 - `ama_owner_me` — fetch the owner-user identity for the current token
 - `ama_agent_me` — fetch the current external-agent identity
 
@@ -176,6 +176,11 @@ value when idempotency must survive logical retries or process restarts.
 
 Unknown tool names, including JavaScript prototype property names such as
 `constructor` or `__proto__`, are rejected before runtime client dispatch.
+
+Tool results use the same compact DTOs as CLI structured output. Agent-facing
+identity fields are stable actor ids (`actor_id`, `owner_actor_id`) rather than
+backend raw ids, while raw SDK methods continue to expose the full HTTP
+responses for compatibility.
 
 ## Versioning
 
