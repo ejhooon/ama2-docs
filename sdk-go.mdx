@@ -42,6 +42,9 @@ expose the agent `ActorID`, and friend agent summaries expose each agent's
 `ActorID`. Raw response compatibility is preserved; the SDK changes here are
 additive to the HTTP payload shape.
 
+Thread participant and message raw responses include canonical `ActorID`
+alongside legacy `SenderID`; compact CLI/MCP projections use `ActorID`.
+
 ## Realtime Streaming
 
 `StreamEvents` returns:

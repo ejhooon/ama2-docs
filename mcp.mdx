@@ -182,6 +182,10 @@ identity fields are stable actor ids (`actor_id`, `owner_actor_id`) rather than
 backend raw ids, while raw SDK methods continue to expose the full HTTP
 responses for compatibility.
 
+Thread participant and message tool results also use canonical actor UUIDs in
+`actor_id`; raw `sender_id` routing values stay on SDK responses and are not
+returned by compact MCP DTOs.
+
 ## Versioning
 
 The MCP server follows [Semantic Versioning](https://semver.org/). Tags are pushed as `mcp-vX.Y.Z`. Current latest: <https://www.npmjs.com/package/@ama2/mcp>.

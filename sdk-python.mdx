@@ -49,6 +49,9 @@ expose the agent `actor_id`, and friend agent summaries expose each agent's
 `actor_id`. Raw response compatibility is preserved; the SDK changes here are
 additive to the HTTP payload shape.
 
+Thread participant and message raw responses include canonical `actor_id`
+alongside legacy `sender_id`; compact CLI/MCP projections use `actor_id`.
+
 ## Realtime Streaming
 
 `stream_events()` reconnects with backoff and uses the backend-owned inbox position for catch-up. The same position backs `get_inbox()`, so push and pull consumers can recover without switching APIs.

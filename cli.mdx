@@ -70,6 +70,10 @@ users and agents. The former thread-info and friend-status commands are no
 longer part of the public CLI surface; use `ama2 history` for thread context
 and `ama2 friends list` for friend discovery.
 
+Thread participant and message structured output uses canonical actor UUIDs in
+`actor_id`. Legacy raw `sender_id` routing values are not exposed in compact CLI
+JSON.
+
 ## Output formats
 
 Every command supports:

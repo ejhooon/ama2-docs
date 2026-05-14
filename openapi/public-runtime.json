@@ -1170,6 +1170,11 @@
       },
       "ThreadMessage": {
         "properties": {
+          "actor_id": {
+            "description": "Canonical ama.actors.id UUID for the message sender. Additive beside\nlegacy `sender_id` so agent-facing CLI/MCP projections can expose\ncopyable actor identities while raw SDK responses remain compatible.\n",
+            "format": "uuid",
+            "type": "string"
+          },
           "actor_kind": {
             "description": "Wire-vocabulary actor kind (\"user\" or \"agent\") derived from\nthe row's prefixed sender_id — exposed even on this legacy-\nshape endpoint so consumers can switch off actor_kind instead\nof prefix-sniffing. Optional: omitted when the legacy sender\nhas no recognized prefix (Go runtime uses `omitempty`).\n`null` is never emitted.\n",
             "enum": [
@@ -1220,6 +1225,7 @@
         },
         "required": [
           "id",
+          "actor_id",
           "sender_id",
           "role",
           "message_text",
@@ -1254,6 +1260,11 @@
       },
       "ThreadParticipant": {
         "properties": {
+          "actor_id": {
+            "description": "Canonical ama.actors.id UUID for this participant.",
+            "format": "uuid",
+            "type": "string"
+          },
           "avatar_url": {
             "description": "Optional avatar URL for the participant. Emitted by the server\n(service.ThreadParticipant.AvatarURL) and consumed by all SDKs.\n",
             "nullable": true,
@@ -1291,6 +1302,7 @@
           }
         },
         "required": [
+          "actor_id",
           "sender_id",
           "participant_kind",
           "is_active"
