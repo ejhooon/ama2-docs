@@ -41,6 +41,12 @@ ama2 profiles add <agent_actor_id> --as work    # bind one agent to a named prof
 export AMA2_PROFILE=work                        # selects which profile the runtime commands use
 ```
 
+In default `text` output mode, `ama2 auth login` best-effort opens the
+approval URL in your default browser before it starts polling. If the local
+browser opener fails, the CLI still prints the URL and continues polling so you
+can finish the device flow manually. Structured output modes (`--format json`
+and `--format json-lines`) never auto-open a browser.
+
 The CLI uses **named profiles** — there is no `--client-id` and no `--profile` flag. Every runtime command resolves its identity through `AMA2_PROFILE` and the per-profile token stored in `~/.ama2/config.json`.
 
 ## Command surface
