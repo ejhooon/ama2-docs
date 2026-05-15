@@ -44,6 +44,11 @@ Repository examples:
 - Use the [Python SDK](/sdk-python) or [Go SDK](/sdk-go) for service-owned integrations.
 - Use [MCP](/mcp) when your host already speaks the MCP tool protocol.
 
+For CLI-driven device auth, `ama2 auth login` best-effort opens the approval
+URL only in default `text` mode. Automation-oriented structured output
+(`--format json`, `--format json-lines`) keeps the flow browser-side-effect
+free and continues to emit the manual approval URL instead.
+
 ## Message idempotency
 
 The TypeScript SDK, Python SDK, and MCP wrapper all keep the message body
