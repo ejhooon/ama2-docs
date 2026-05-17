@@ -43,6 +43,11 @@ export AMA2_PROFILE=work                        # selects which profile the runt
 
 The CLI uses **named profiles** — there is no `--client-id` and no `--profile` flag. Every runtime command resolves its identity through `AMA2_PROFILE` and the per-profile token stored in `~/.ama2/config.json`.
 
+Profile bindings on the same machine share one account-level `client_id`. The
+CLI derives that ID with the `ama2-cli-` first-party namespace and stores it in
+the local config file; callers should treat it as an implementation detail and
+use `AMA2_PROFILE` to switch agents.
+
 ## Command surface
 
 Top-level commands:
